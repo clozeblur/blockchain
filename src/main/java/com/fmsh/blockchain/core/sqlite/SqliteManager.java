@@ -9,6 +9,7 @@ import com.fmsh.blockchain.core.event.DbSyncEvent;
 import com.fmsh.blockchain.core.manager.BlockManager;
 import com.fmsh.blockchain.core.manager.SyncManager;
 import com.fmsh.blockchain.core.model.SyncEntity;
+import com.fmsh.blockchain.core.service.InstructionService;
 import com.fmsh.blockchain.core.sqlparser.InstructionParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
