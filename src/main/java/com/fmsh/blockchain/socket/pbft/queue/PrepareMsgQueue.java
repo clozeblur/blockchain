@@ -1,14 +1,13 @@
 package com.fmsh.blockchain.socket.pbft.queue;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.mindata.blockchain.block.Block;
-import com.mindata.blockchain.common.AppId;
-import com.mindata.blockchain.core.event.AddBlockEvent;
-import com.mindata.blockchain.socket.pbft.VoteType;
-import com.mindata.blockchain.socket.pbft.event.MsgCommitEvent;
-import com.mindata.blockchain.socket.pbft.msg.VoteMsg;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.fmsh.blockchain.biz.block.Block;
+import com.fmsh.blockchain.common.AppId;
+import com.fmsh.blockchain.core.event.AddBlockEvent;
+import com.fmsh.blockchain.socket.pbft.VoteType;
+import com.fmsh.blockchain.socket.pbft.event.MsgCommitEvent;
+import com.fmsh.blockchain.socket.pbft.msg.VoteMsg;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
@@ -23,12 +22,12 @@ import java.util.List;
  * @author wuweifeng wrote on 2018/4/25.
  */
 @Component
+@Slf4j
 public class PrepareMsgQueue extends AbstractVoteMsgQueue {
     @Resource
     private CommitMsgQueue commitMsgQueue;
     @Resource
     private ApplicationEventPublisher eventPublisher;
-    private Logger logger = LoggerFactory.getLogger(getClass());
 
     /**
      * 收到节点（包括自己）针对某Block的Prepare消息
@@ -63,7 +62,7 @@ public class PrepareMsgQueue extends AbstractVoteMsgQueue {
     }
 
     private void agree(VoteMsg commitMsg, boolean flag) {
-        logger.info("Prepare阶段完毕，是否进入commit的标志是：" + flag);
+        log.info("Prepare阶段完毕，是否进入commit的标志是：" + flag);
         //发出拒绝commit的消息
         commitMsg.setAgree(flag);
         voteStateConcurrentHashMap.put(commitMsg.getHash(), flag);

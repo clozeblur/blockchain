@@ -1,9 +1,8 @@
 package com.fmsh.blockchain.socket.client;
 
-import com.mindata.blockchain.ApplicationContextProvider;
-import com.mindata.blockchain.core.event.NodesConnectedEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.fmsh.blockchain.ApplicationContextProvider;
+import com.fmsh.blockchain.core.event.NodesConnectedEvent;
+import lombok.extern.slf4j.Slf4j;
 import org.tio.client.intf.ClientAioListener;
 import org.tio.core.Aio;
 import org.tio.core.ChannelContext;
@@ -15,8 +14,8 @@ import org.tio.core.intf.Packet;
  *
  * @author wuweifeng wrote on 2018/3/12.
  */
+@Slf4j
 public class BlockClientAioListener implements ClientAioListener {
-    private Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
     public void onAfterConnected(ChannelContext channelContext, boolean isConnected, boolean isReconnect) throws Exception {
@@ -31,7 +30,7 @@ public class BlockClientAioListener implements ClientAioListener {
 
     @Override
     public void onBeforeClose(ChannelContext channelContext, Throwable throwable, String s, boolean b) {
-        logger.info("连接关闭：server地址为-" + channelContext.getServerNode());
+        log.info("连接关闭：server地址为-" + channelContext.getServerNode());
         Aio.unbindGroup(channelContext);
     }
 

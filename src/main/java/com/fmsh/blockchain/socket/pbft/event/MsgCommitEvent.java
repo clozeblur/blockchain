@@ -1,6 +1,6 @@
 package com.fmsh.blockchain.socket.pbft.event;
 
-import com.mindata.blockchain.socket.pbft.msg.VoteMsg;
+import com.fmsh.blockchain.socket.pbft.msg.VoteMsg;
 import org.springframework.context.ApplicationEvent;
 
 /**

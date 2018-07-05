@@ -1,6 +1,6 @@
 package com.fmsh.blockchain.socket.server;
 
-import com.mindata.blockchain.socket.common.Const;
+import com.fmsh.blockchain.common.Const;
 import org.springframework.stereotype.Component;
 import org.tio.server.AioServer;
 import org.tio.server.ServerGroupContext;

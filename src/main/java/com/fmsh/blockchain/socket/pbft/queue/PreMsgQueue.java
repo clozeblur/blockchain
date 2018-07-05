@@ -10,8 +10,7 @@ import com.fmsh.blockchain.socket.pbft.VoteType;
 import com.fmsh.blockchain.socket.pbft.event.MsgPrepareEvent;
 import com.fmsh.blockchain.socket.pbft.msg.VoteMsg;
 import com.fmsh.blockchain.socket.pbft.msg.VotePreMsg;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
@@ -26,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author wuweifeng wrote on 2018/4/23.
  */
 @Component
+@Slf4j
 public class PreMsgQueue extends BaseMsgQueue {
     @Resource
     private SqliteManager sqliteManager;
@@ -35,8 +35,6 @@ public class PreMsgQueue extends BaseMsgQueue {
     private ApplicationEventPublisher eventPublisher;
 
     private ConcurrentHashMap<String, VotePreMsg> blockConcurrentHashMap = new ConcurrentHashMap<>();
-
-    private Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
     protected void push(VoteMsg voteMsg) {
@@ -50,7 +48,7 @@ public class PreMsgQueue extends BaseMsgQueue {
         //但凡是能进到该push方法的，都是通过基本校验的，但在并发情况下可能会相同number的block都进到投票队列中
         //需要对新进来的Vote信息的number进行校验，如果在比prepre阶段靠后的阶段中，已经出现了认证OK的同number的vote，则拒绝进入该队列
         if (prepareMsgQueue.otherConfirm(hash, voteMsg.getNumber())) {
-            logger.info("拒绝进入Prepare阶段，hash为" + hash);
+            log.info("拒绝进入Prepare阶段，hash为" + hash);
             return;
         }
         // 检测脚本是否正常
@@ -61,7 +59,7 @@ public class PreMsgQueue extends BaseMsgQueue {
 				// 执行异常
 				return;
 			}else{
-				logger.info("指令预校验执行成功！");
+				log.info("指令预校验执行成功！");
 			}
 		}
         

@@ -1,18 +1,17 @@
 package com.fmsh.blockchain.socket.distruptor;
 
 import cn.hutool.core.util.StrUtil;
-import com.mindata.blockchain.common.AppId;
-import com.mindata.blockchain.socket.base.AbstractBlockHandler;
-import com.mindata.blockchain.socket.body.BaseBody;
-import com.mindata.blockchain.socket.distruptor.base.BaseEvent;
-import com.mindata.blockchain.socket.distruptor.base.MessageConsumer;
-import com.mindata.blockchain.socket.handler.client.FetchBlockResponseHandler;
-import com.mindata.blockchain.socket.handler.client.NextBlockResponseHandler;
-import com.mindata.blockchain.socket.handler.client.TotalBlockInfoResponseHandler;
-import com.mindata.blockchain.socket.packet.BlockPacket;
-import com.mindata.blockchain.socket.packet.PacketType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.fmsh.blockchain.common.AppId;
+import com.fmsh.blockchain.socket.base.AbstractBlockHandler;
+import com.fmsh.blockchain.socket.body.BaseBody;
+import com.fmsh.blockchain.socket.distruptor.base.BaseEvent;
+import com.fmsh.blockchain.socket.distruptor.base.MessageConsumer;
+import com.fmsh.blockchain.socket.handler.client.FetchBlockResponseHandler;
+import com.fmsh.blockchain.socket.handler.client.NextBlockResponseHandler;
+import com.fmsh.blockchain.socket.handler.client.TotalBlockInfoResponseHandler;
+import com.fmsh.blockchain.socket.packet.BlockPacket;
+import com.fmsh.blockchain.socket.packet.PacketType;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.tio.utils.json.Json;
 
@@ -24,9 +23,9 @@ import java.util.Map;
  * @author wuweifeng wrote on 2018/4/20.
  */
 @Component
+@Slf4j
 public class DisruptorClientConsumer implements MessageConsumer {
     private static Map<Byte, AbstractBlockHandler<?>> handlerMap = new HashMap<>();
-    private Logger logger = LoggerFactory.getLogger(getClass());
 
     static {
         handlerMap.put(PacketType.TOTAL_BLOCK_INFO_RESPONSE, new TotalBlockInfoResponseHandler());

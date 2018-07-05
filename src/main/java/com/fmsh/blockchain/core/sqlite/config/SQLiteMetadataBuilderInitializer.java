@@ -1,25 +1,24 @@
 package com.fmsh.blockchain.core.sqlite.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.boot.MetadataBuilder;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.spi.MetadataBuilderInitializer;
 import org.hibernate.engine.jdbc.dialect.internal.DialectResolverSet;
 import org.hibernate.engine.jdbc.dialect.spi.DialectResolver;
-import org.jboss.logging.Logger;
 
 /**
  * SQLite工具
  */
+@Slf4j
 public class SQLiteMetadataBuilderInitializer implements MetadataBuilderInitializer {
-
-    private final static Logger logger = Logger.getLogger(SQLiteMetadataBuilderInitializer.class);
 
     @Override
     public void contribute(MetadataBuilder metadataBuilder, StandardServiceRegistry serviceRegistry) {
         DialectResolver dialectResolver = serviceRegistry.getService(DialectResolver.class);
 
         if (!(dialectResolver instanceof DialectResolverSet)) {
-            logger.warnf("DialectResolver '%s' is not an instance of DialectResolverSet, not registering SQLiteDialect",
+            log.warn("DialectResolver '%s' is not an instance of DialectResolverSet, not registering SQLiteDialect",
                     dialectResolver);
             return;
         }

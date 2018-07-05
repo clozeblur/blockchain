@@ -1,13 +1,12 @@
 package com.fmsh.blockchain.socket.handler.server;
 
-import com.mindata.blockchain.ApplicationContextProvider;
-import com.mindata.blockchain.socket.base.AbstractBlockHandler;
-import com.mindata.blockchain.socket.body.VoteBody;
-import com.mindata.blockchain.socket.packet.BlockPacket;
-import com.mindata.blockchain.socket.pbft.msg.VoteMsg;
-import com.mindata.blockchain.socket.pbft.queue.MsgQueueManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.fmsh.blockchain.ApplicationContextProvider;
+import com.fmsh.blockchain.socket.base.AbstractBlockHandler;
+import com.fmsh.blockchain.socket.body.VoteBody;
+import com.fmsh.blockchain.socket.packet.BlockPacket;
+import com.fmsh.blockchain.socket.pbft.msg.VoteMsg;
+import com.fmsh.blockchain.socket.pbft.queue.MsgQueueManager;
+import lombok.extern.slf4j.Slf4j;
 import org.tio.core.ChannelContext;
 
 /**
@@ -15,9 +14,8 @@ import org.tio.core.ChannelContext;
  *
  * @author wuweifeng wrote on 2018/3/12.
  */
+@Slf4j
 public class PbftVoteHandler extends AbstractBlockHandler<VoteBody> {
-    private Logger logger = LoggerFactory.getLogger(PbftVoteHandler.class);
-
 
     @Override
     public Class<VoteBody> bodyClass() {
@@ -27,7 +25,7 @@ public class PbftVoteHandler extends AbstractBlockHandler<VoteBody> {
     @Override
     public Object handler(BlockPacket packet, VoteBody voteBody, ChannelContext channelContext) {
         VoteMsg voteMsg = voteBody.getVoteMsg();
-        logger.info("收到来自于<" + voteMsg.getAppId() + "><投票>消息，投票信息为[" + voteMsg + "]");
+        log.info("收到来自于<" + voteMsg.getAppId() + "><投票>消息，投票信息为[" + voteMsg + "]");
 
         ApplicationContextProvider.getBean(MsgQueueManager.class).pushMsg(voteMsg);
         return null;

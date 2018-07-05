@@ -10,8 +10,7 @@ import com.fmsh.blockchain.socket.packet.BlockPacket;
 import com.fmsh.blockchain.socket.packet.PacketBuilder;
 import com.fmsh.blockchain.socket.packet.PacketType;
 import com.google.common.collect.Lists;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -25,6 +24,7 @@ import java.util.stream.Collectors;
  * @author wuweifeng wrote on 2018/3/26.
  */
 @Component
+@Slf4j
 public class NextBlockQueue {
     @Resource
     private BlockManager blockManager;
@@ -32,8 +32,6 @@ public class NextBlockQueue {
     private ClientStarter clientStarter;
     @Resource
     private PacketSender packetSender;
-
-    private Logger logger = LoggerFactory.getLogger(getClass());
 
     /**
      * prevHash->hash，记录上一区块hash和hash的映射
@@ -145,7 +143,7 @@ public class NextBlockQueue {
 
         //判断数量是否过线
         if (maxCount >= agreeCount - 1) {
-            logger.info("共有<" + maxCount + ">个节点返回next block hash为" + wantHash);
+            log.info("共有<" + maxCount + ">个节点返回next block hash为" + wantHash);
             wantHashs.add(wantHash);
             //请求拉取该hash的Block
             BlockPacket blockPacket = new PacketBuilder<RpcSimpleBlockBody>().setType(PacketType

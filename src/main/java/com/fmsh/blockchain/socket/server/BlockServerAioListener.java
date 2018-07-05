@@ -1,7 +1,6 @@
 package com.fmsh.blockchain.socket.server;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.tio.core.ChannelContext;
 import org.tio.core.intf.Packet;
 import org.tio.server.intf.ServerAioListener;
@@ -12,8 +11,8 @@ import org.tio.utils.json.Json;
  * 连接状态的监听器
  * 2017年3月26日 下午8:22:31
  */
+@Slf4j
 public class BlockServerAioListener implements ServerAioListener {
-	private static Logger log = LoggerFactory.getLogger(BlockServerAioListener.class);
 
 	@Override
 	public void onAfterConnected(ChannelContext channelContext, boolean isConnected, boolean isReconnect) {

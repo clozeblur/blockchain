@@ -1,19 +1,15 @@
 package com.fmsh.blockchain.socket.client;
 
+import com.fmsh.blockchain.common.AppId;
+import com.fmsh.blockchain.common.CommonUtil;
+import com.fmsh.blockchain.common.Const;
+import com.fmsh.blockchain.core.bean.Member;
+import com.fmsh.blockchain.core.bean.MemberData;
+import com.fmsh.blockchain.core.event.NodesConnectedEvent;
+import com.fmsh.blockchain.socket.packet.BlockPacket;
+import com.fmsh.blockchain.socket.packet.NextBlockPacketBuilder;
 import com.google.common.collect.Maps;
-import com.mindata.blockchain.common.AppId;
-import com.mindata.blockchain.common.CommonUtil;
-import com.mindata.blockchain.core.bean.Member;
-import com.mindata.blockchain.core.bean.MemberData;
-import com.mindata.blockchain.core.bean.Permission;
-import com.mindata.blockchain.core.bean.PermissionData;
-import com.mindata.blockchain.core.event.NodesConnectedEvent;
-import com.mindata.blockchain.core.manager.PermissionManager;
-import com.mindata.blockchain.socket.common.Const;
-import com.mindata.blockchain.socket.packet.BlockPacket;
-import com.mindata.blockchain.socket.packet.NextBlockPacketBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -34,12 +30,13 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
-import static com.mindata.blockchain.socket.common.Const.GROUP_NAME;
+import static com.fmsh.blockchain.common.Const.GROUP_NAME;
 
 /**
  * @author wuweifeng wrote on 2018/3/18.
  */
 @Component
+@Slf4j
 public class ClientStarter {
     @Resource
     private ClientGroupContext clientGroupContext;
@@ -47,8 +44,6 @@ public class ClientStarter {
     private PacketSender packetSender;
     @Resource
     private RestTemplate restTemplate;
-    @Resource
-    private PermissionManager permissionManager;
     @Value("${managerUrl}")
     private String managerUrl;
     @Value("${appId}")
@@ -57,8 +52,6 @@ public class ClientStarter {
     private String name;
     @Value("${singeNode:false}")
     private Boolean singeNode;
-
-    private Logger logger = LoggerFactory.getLogger(getClass());
 
     private Set<Node> nodes = new HashSet<>();
     
@@ -73,7 +66,7 @@ public class ClientStarter {
     @Scheduled(fixedRate = 300000)
     public void fetchOtherServer() {
         String localIp = CommonUtil.getLocalIp();
-        logger.info("本机IP：{}",localIp);
+        log.info("本机IP：{}",localIp);
         try {
             //如果连不上服务器，就不让启动
             MemberData memberData = restTemplate.getForEntity(managerUrl + "member?name=" + name + "&appId=" + AppId
@@ -84,7 +77,7 @@ public class ClientStarter {
             //合法的客户端
             if (memberData.getCode() == 0) {
                 List<Member> memberList = memberData.getMembers();
-                logger.info("共有" + memberList.size() + "个成员需要连接：" + memberList.toString());
+                log.info("共有" + memberList.size() + "个成员需要连接：" + memberList.toString());
 
                 nodes.clear();
                 for (Member member : memberList) {
@@ -95,39 +88,38 @@ public class ClientStarter {
                 bindServerGroup(nodes);
 
             } else {
-                logger.error("不是合法有效的已注册的客户端");
+                log.error("不是合法有效的已注册的客户端");
                 System.exit(0);
             }
         } catch (Exception e) {
-            logger.error("请先启动md_blockchain_manager服务，并配置appId等属性，只有合法联盟链成员才能启动该服务");
+            log.error("请先启动md_blockchain_manager服务，并配置appId等属性，只有合法联盟链成员才能启动该服务");
             System.exit(0);
         }
 
     }
 
-    /**
-     * 从麦达区块链管理端获取权限信息，一天获取一次即可
-     */
-    @Scheduled(fixedRate = 1000 * 60 * 60 * 24, initialDelay = 2000)
-    public void fetchPermission() {
-        try {
-            //如果连不上服务器，就不让启动
-            PermissionData permissionData = restTemplate.getForEntity(managerUrl + "permission?name=" + name,
-                    PermissionData.class).getBody();
-            //获取到权限
-            if (permissionData.getCode() == 0) {
-                List<Permission> permissionList = permissionData.getPermissions();
-                permissionManager.savePermissionList(permissionList);
-            } else {
-                logger.error("无法获取权限信息");
-                System.exit(0);
-            }
-        } catch (Exception e) {
-            logger.error("请先启动md_blockchain_manager服务，并配置appId等属性，只有合法联盟链成员才能启动该服务");
-            System.exit(0);
-        }
-
-    }
+//    /**
+//     * 从区块链管理端获取权限信息，一天获取一次即可
+//     */
+//    @Scheduled(fixedRate = 1000 * 60 * 60 * 24, initialDelay = 2000)
+//    public void fetchPermission() {
+//        try {
+//            //如果连不上服务器，就不让启动
+//            PermissionData permissionData = restTemplate.getForEntity(managerUrl + "permission?name=" + name,
+//                    PermissionData.class).getBody();
+//            //获取到权限
+//            if (permissionData.getCode() == 0) {
+//                List<Permission> permissionList = permissionData.getPermissions();
+//                permissionManager.savePermissionList(permissionList);
+//            } else {
+//                logger.error("无法获取权限信息");
+//                System.exit(0);
+//            }
+//        } catch (Exception e) {
+//            logger.error("请先启动md_blockchain_manager服务，并配置appId等属性，只有合法联盟链成员才能启动该服务");
+//            System.exit(0);
+//        }
+//    }
 
     /**
      * 每30秒群发一次消息，和别人对比最新的Block
@@ -135,13 +127,13 @@ public class ClientStarter {
     @Scheduled(fixedRate = 30000)
     public void heartBeat() {
     	if(!isNodesReady)return;
-        logger.info("---------开始心跳包--------");
+        log.info("---------开始心跳包--------");
         BlockPacket blockPacket = NextBlockPacketBuilder.build();
         packetSender.sendGroup(blockPacket);
     }
 
     public void onNodesReady() {
-        logger.info("开始群发信息获取next Block");
+        log.info("开始群发信息获取next Block");
         //在这里发请求，去获取group别人的新区块
         BlockPacket nextBlockPacket = NextBlockPacketBuilder.build();
         packetSender.sendGroup(nextBlockPacket);
@@ -184,10 +176,10 @@ public class ClientStarter {
     private void connect(Node serverNode) {
         try {
             AioClient aioClient = new AioClient(clientGroupContext);
-            logger.info("开始绑定" + ":" + serverNode.toString());
+            log.info("开始绑定" + ":" + serverNode.toString());
             aioClient.asynConnect(serverNode);
         } catch (Exception e) {
-            logger.info("异常");
+            log.info("异常");
         }
     }
     
@@ -196,11 +188,11 @@ public class ClientStarter {
     	ChannelContext channelContext = connectedEvent.getSource();
     	Node node = channelContext.getServerNode();
     	if (channelContext.isClosed()) {
-            logger.info("连接" + node.toString() + "失败");
+            log.info("连接" + node.toString() + "失败");
             nodesStatus.put(node.getIp(), -1);
             return;
         }else{
-        	logger.info("连接" + node.toString() + "成功");
+        	log.info("连接" + node.toString() + "成功");
         	nodesStatus.put(node.getIp(), 1);
         	//绑group是将要连接的各个服务器节点做为一个group
         	Aio.bindGroup(channelContext, GROUP_NAME);
@@ -218,7 +210,7 @@ public class ClientStarter {
     }
 
     public int halfGroupSize() {
-        SetWithLock<ChannelContext> setWithLock = clientGroupContext.groups.clients(clientGroupContext, Const.GROUP_NAME);
+        SetWithLock<ChannelContext> setWithLock = clientGroupContext.groups.clients(clientGroupContext, GROUP_NAME);
         return setWithLock.getObj().size() / 2;
     }
 

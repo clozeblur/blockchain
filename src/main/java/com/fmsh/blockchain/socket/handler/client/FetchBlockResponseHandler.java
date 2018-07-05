@@ -1,18 +1,17 @@
 package com.fmsh.blockchain.socket.handler.client;
 
-import com.mindata.blockchain.ApplicationContextProvider;
-import com.mindata.blockchain.block.Block;
-import com.mindata.blockchain.block.check.CheckerManager;
-import com.mindata.blockchain.core.event.AddBlockEvent;
-import com.mindata.blockchain.socket.base.AbstractBlockHandler;
-import com.mindata.blockchain.socket.body.RpcBlockBody;
-import com.mindata.blockchain.socket.body.RpcCheckBlockBody;
-import com.mindata.blockchain.socket.client.PacketSender;
-import com.mindata.blockchain.socket.packet.BlockPacket;
-import com.mindata.blockchain.socket.packet.NextBlockPacketBuilder;
-import com.mindata.blockchain.socket.pbft.queue.NextBlockQueue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.fmsh.blockchain.ApplicationContextProvider;
+import com.fmsh.blockchain.biz.block.Block;
+import com.fmsh.blockchain.core.event.AddBlockEvent;
+import com.fmsh.blockchain.core.manager.CheckerManager;
+import com.fmsh.blockchain.socket.base.AbstractBlockHandler;
+import com.fmsh.blockchain.socket.body.RpcBlockBody;
+import com.fmsh.blockchain.socket.body.RpcCheckBlockBody;
+import com.fmsh.blockchain.socket.client.PacketSender;
+import com.fmsh.blockchain.socket.packet.BlockPacket;
+import com.fmsh.blockchain.socket.packet.NextBlockPacketBuilder;
+import com.fmsh.blockchain.socket.pbft.queue.NextBlockQueue;
+import lombok.extern.slf4j.Slf4j;
 import org.tio.core.ChannelContext;
 import org.tio.utils.json.Json;
 
@@ -21,8 +20,8 @@ import org.tio.utils.json.Json;
  *
  * @author wuweifeng wrote on 2018/3/16.
  */
+@Slf4j
 public class FetchBlockResponseHandler extends AbstractBlockHandler<RpcBlockBody> {
-    private Logger logger = LoggerFactory.getLogger(TotalBlockInfoResponseHandler.class);
 
     @Override
     public Class<RpcBlockBody> bodyClass() {
@@ -31,12 +30,12 @@ public class FetchBlockResponseHandler extends AbstractBlockHandler<RpcBlockBody
 
     @Override
     public Object handler(BlockPacket packet, RpcBlockBody rpcBlockBody, ChannelContext channelContext) {
-        logger.info("收到来自于<" + rpcBlockBody.getAppId() + ">的回复，Block为：" + Json.toJson(rpcBlockBody));
+        log.info("收到来自于<" + rpcBlockBody.getAppId() + ">的回复，Block为：" + Json.toJson(rpcBlockBody));
 
         Block block = rpcBlockBody.getBlock();
         //如果为null，说明对方也没有该Block
         if (block == null) {
-            logger.info("对方也没有该Block");
+            log.info("对方也没有该Block");
         } else {
             //此处校验传过来的block的合法性，如果合法，则更新到本地，作为next区块
         	if(ApplicationContextProvider.getBean(NextBlockQueue.class).pop(block.getHash()) == null) return null;

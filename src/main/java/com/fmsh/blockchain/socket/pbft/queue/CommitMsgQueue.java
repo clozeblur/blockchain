@@ -1,11 +1,10 @@
 package com.fmsh.blockchain.socket.pbft.queue;
 
-import com.mindata.blockchain.ApplicationContextProvider;
-import com.mindata.blockchain.block.Block;
-import com.mindata.blockchain.core.event.AddBlockEvent;
-import com.mindata.blockchain.socket.pbft.msg.VoteMsg;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.fmsh.blockchain.ApplicationContextProvider;
+import com.fmsh.blockchain.biz.block.Block;
+import com.fmsh.blockchain.core.event.AddBlockEvent;
+import com.fmsh.blockchain.socket.pbft.msg.VoteMsg;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -20,11 +19,10 @@ import java.util.List;
  * @author wuweifeng wrote on 2018/4/25.
  */
 @Component
+@Slf4j
 public class CommitMsgQueue extends AbstractVoteMsgQueue {
     @Resource
     private PreMsgQueue preMsgQueue;
-
-    private Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
     protected void deal(VoteMsg voteMsg, List<VoteMsg> voteMsgs) {
@@ -32,7 +30,7 @@ public class CommitMsgQueue extends AbstractVoteMsgQueue {
 
         //通过校验agree数量，来决定是否在本地生成Block
         long count = voteMsgs.stream().filter(VoteMsg::isAgree).count();
-        logger.info("已经commit为true的数量为:"+ count);
+        log.info("已经commit为true的数量为:"+ count);
         if (count >= pbftAgreeSize()) {
             Block block = preMsgQueue.findByHash(hash);
             if (block == null) {

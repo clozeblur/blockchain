@@ -7,8 +7,6 @@ import com.fmsh.blockchain.common.Constants;
 import com.fmsh.blockchain.core.event.AddBlockEvent;
 import com.fmsh.blockchain.core.event.DbSyncEvent;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;

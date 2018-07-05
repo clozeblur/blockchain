@@ -3,8 +3,7 @@ package com.fmsh.blockchain.socket.pbft.queue;
 import cn.hutool.core.collection.CollectionUtil;
 import com.fmsh.blockchain.common.timer.TimerManager;
 import com.fmsh.blockchain.socket.pbft.msg.VoteMsg;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author wuweifeng wrote on 2018/4/26.
  */
+@Slf4j
 public abstract class AbstractVoteMsgQueue extends BaseMsgQueue {
     /**
      * 存储所有的hash的投票集合
@@ -22,8 +22,6 @@ public abstract class AbstractVoteMsgQueue extends BaseMsgQueue {
      * 存储本节点已确认状态的hash的集合，即本节点已对外广播过允许commit或拒绝commit的消息了
      */
     protected ConcurrentHashMap<String, Boolean> voteStateConcurrentHashMap = new ConcurrentHashMap<>();
-
-    private Logger logger = LoggerFactory.getLogger(getClass());
 
     abstract void deal(VoteMsg voteMsg, List<VoteMsg> voteMsgs);
 

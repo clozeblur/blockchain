@@ -1,8 +1,8 @@
 package com.fmsh.blockchain.socket.pbft.queue;
 
-import com.mindata.blockchain.ApplicationContextProvider;
-import com.mindata.blockchain.socket.pbft.VoteType;
-import com.mindata.blockchain.socket.pbft.msg.VoteMsg;
+import com.fmsh.blockchain.ApplicationContextProvider;
+import com.fmsh.blockchain.socket.pbft.VoteType;
+import com.fmsh.blockchain.socket.pbft.msg.VoteMsg;
 import org.springframework.stereotype.Component;
 
 /**
