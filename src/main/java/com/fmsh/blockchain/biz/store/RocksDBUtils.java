@@ -3,9 +3,11 @@ package com.fmsh.blockchain.biz.store;
 import com.fmsh.blockchain.biz.block.Block;
 import com.fmsh.blockchain.biz.transaction.TXOutput;
 import com.fmsh.blockchain.biz.util.SerializeUtils;
+import com.fmsh.blockchain.common.Constants;
 import com.google.common.collect.Maps;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 
@@ -24,6 +26,10 @@ public class RocksDBUtils {
      * 区块链数据文件
      */
     private static final String DB_FILE = "blockchain.db";
+    /**
+     * 常量桶key
+     */
+    private static final String NORMAL_BUCKET_KEY = "normal";
     /**
      * 区块桶Key
      */
@@ -54,6 +60,11 @@ public class RocksDBUtils {
     private RocksDB db;
 
     /**
+     * normal buckets
+     */
+    private Map<String, byte[]> normalBucket;
+
+    /**
      * block buckets
      */
     private Map<String, byte[]> blocksBucket;
@@ -65,6 +76,7 @@ public class RocksDBUtils {
 
     private RocksDBUtils() {
         openDB();
+        initNormalBucket();
         initBlockBucket();
         initChainStateBucket();
     }
@@ -78,6 +90,26 @@ public class RocksDBUtils {
         } catch (RocksDBException e) {
             log.error("Fail to open db ! ", e);
             throw new RuntimeException("Fail to open db ! ", e);
+        }
+    }
+
+    /**
+     * 初始化 normal 桶
+     */
+    @SuppressWarnings("unchecked")
+    private void initNormalBucket() {
+        try {
+            byte[] normalBucketKey = SerializeUtils.serialize(NORMAL_BUCKET_KEY);
+            byte[] normalBucketBytes = db.get(normalBucketKey);
+            if (normalBucketBytes != null) {
+                normalBucket = (Map) SerializeUtils.deserialize(normalBucketBytes);
+            } else {
+                normalBucket = Maps.newHashMap();
+                db.put(normalBucketKey, SerializeUtils.serialize(normalBucket));
+            }
+        } catch (RocksDBException e) {
+            log.error("Fail to init normal block bucket ! ", e);
+            throw new RuntimeException("Fail to init normal block bucket ! ", e);
         }
     }
 
@@ -126,12 +158,17 @@ public class RocksDBUtils {
      */
     public void putLastBlockHash(String tipBlockHash) {
         try {
-            blocksBucket.put(LAST_BLOCK_KEY, SerializeUtils.serialize(tipBlockHash));
+            normalBucket.put(Constants.KEY_LAST_BLOCK, SerializeUtils.serialize(tipBlockHash));
             db.put(SerializeUtils.serialize(BLOCKS_BUCKET_KEY), SerializeUtils.serialize(blocksBucket));
         } catch (RocksDBException e) {
             log.error("Fail to put last block hash ! tipBlockHash=" + tipBlockHash, e);
             throw new RuntimeException("Fail to put last block hash ! tipBlockHash=" + tipBlockHash, e);
         }
+    }
+
+    public String getFirstBlockHash() {
+        byte[] firstBlockHashBytes = normalBucket.get(Constants.KEY_FIRST_BLOCK);
+        return firstBlockHashBytes == null ? null : (String) SerializeUtils.deserialize(firstBlockHashBytes);
     }
 
     /**
@@ -140,11 +177,39 @@ public class RocksDBUtils {
      * @return
      */
     public String getLastBlockHash() {
-        byte[] lastBlockHashBytes = blocksBucket.get(LAST_BLOCK_KEY);
+        byte[] lastBlockHashBytes = normalBucket.get(Constants.KEY_LAST_BLOCK);
         if (lastBlockHashBytes != null) {
             return (String) SerializeUtils.deserialize(lastBlockHashBytes);
         }
         return "";
+    }
+
+    /**
+     * 查询某一个block的下一个block
+     *
+     * @param hash block.hash
+     * @return hash
+     */
+    public String getNextBlockHash(String hash) {
+        if (StringUtils.isBlank(hash)) return getFirstBlockHash();
+        byte[] nextBlockHash = normalBucket.get(Constants.KEY_BLOCK_NEXT_PREFIX + hash);
+        return nextBlockHash == null ? null : (String) SerializeUtils.deserialize(nextBlockHash);
+    }
+
+    /**
+     * 保存常规数据
+     *
+     * @param key key
+     * @param value value
+     */
+    public void normalPut(String key, String value) {
+        try {
+            normalBucket.put(key, SerializeUtils.serialize(value));
+            db.put(SerializeUtils.serialize(NORMAL_BUCKET_KEY), SerializeUtils.serialize(normalBucket));
+        } catch (RocksDBException e) {
+            log.error("Fail to put normal data ! key=" + key + " & value=" + value, e);
+            throw new RuntimeException("Fail to put normal data ! key=" + key + " & value=" + value, e);
+        }
     }
 
     /**

@@ -8,6 +8,8 @@
 
 package com.fmsh.blockchain.biz.util;
 
+import cn.hutool.crypto.digest.DigestUtil;
+
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -20,6 +22,10 @@ import static java.lang.Integer.rotateRight;
 public final class Sha256 {
 	
 	private static final int BLOCK_LEN = 64;  // In bytes
+
+	public static String sha256(String input) {
+		return DigestUtil.sha256Hex(input);
+	}
 	
 	
 	

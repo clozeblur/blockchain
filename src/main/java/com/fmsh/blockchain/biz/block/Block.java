@@ -1,13 +1,10 @@
 package com.fmsh.blockchain.biz.block;
 
 import com.fmsh.blockchain.biz.transaction.MerkleTree;
-import com.fmsh.blockchain.biz.transaction.Transaction;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import java.time.Instant;
 
 /**
  * 区块
@@ -26,50 +23,13 @@ public class Block {
      */
     private String hash;
     /**
-     * 前一个区块的hash值
+     * 区块头
      */
-    private String prevBlockHash;
+    private BlockHeader blockHeader;
     /**
-     * 交易信息
+     * 区块体
      */
-    private Transaction[] transactions;
-    /**
-     * 区块创建时间(单位:秒)
-     */
-    private long timeStamp;
-    /**
-     * 工作量证明计数器
-     */
-    private long nonce;
-
-
-    /**
-     * <p> 创建创世区块 </p>
-     *
-     * @param coinbase
-     * @return
-     */
-    public static Block newGenesisBlock(Transaction coinbase) {
-        return Block.newBlock("", new Transaction[]{coinbase});
-    }
-
-    /**
-     * <p> 创建新区块 </p>
-     *
-     * @param previousHash
-     * @param transactions
-     * @return
-     */
-    public static Block newBlock(String previousHash, Transaction[] transactions) {
-        Block block = new Block("", previousHash, transactions, Instant.now().getEpochSecond(), 0);
-//        ProofOfWork pow = ProofOfWork.newProofOfWork(block);
-//        PowResult powResult = pow.run();
-//        block.setHash(powResult.getHash());
-//        block.setNonce(powResult.getNonce());
-
-        // todo POS validate
-        return block;
-    }
+    private BlockBody blockBody;
 
     /**
      * 对区块中的交易信息进行Hash计算
@@ -77,9 +37,9 @@ public class Block {
      * @return
      */
     public byte[] hashTransaction() {
-        byte[][] txIdArrays = new byte[this.getTransactions().length][];
-        for (int i = 0; i < this.getTransactions().length; i++) {
-            txIdArrays[i] = this.getTransactions()[i].hash();
+        byte[][] txIdArrays = new byte[this.getBlockBody().getInstructions().size()][];
+        for (int i = 0; i < this.getBlockBody().getInstructions().size(); i++) {
+            txIdArrays[i] = this.getBlockBody().getInstructions().get(i).getTransaction().hash();
         }
         return new MerkleTree(txIdArrays).getRoot().getHash();
     }

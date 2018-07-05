@@ -1,18 +1,12 @@
 package com.fmsh.blockchain.biz.transaction;
 
-import com.fmsh.blockchain.biz.block.Blockchain;
-import com.fmsh.blockchain.biz.util.BtcAddressUtils;
 import com.fmsh.blockchain.biz.util.SerializeUtils;
-import com.fmsh.blockchain.biz.wallet.Wallet;
-import com.fmsh.blockchain.biz.wallet.WalletUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -26,7 +20,6 @@ import java.security.PublicKey;
 import java.security.Security;
 import java.security.Signature;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -40,9 +33,6 @@ import java.util.Map;
 @NoArgsConstructor
 @Slf4j
 public class Transaction {
-
-    private static final int SUBSIDY = 10;
-
     /**
      * 交易的Hash
      */
@@ -74,29 +64,6 @@ public class Transaction {
     }
 
     /**
-     * 创建CoinBase交易
-     *
-     * @param to   收账的钱包地址
-     * @param data 解锁脚本数据
-     * @return
-     */
-    public static Transaction newCoinbaseTX(String to, String data) {
-        if (StringUtils.isBlank(data)) {
-            data = String.format("Reward to '%s'", to);
-        }
-        // 创建交易输入
-        TXInput txInput = new TXInput(new byte[]{}, -1, null, data.getBytes());
-        // 创建交易输出
-        TXOutput txOutput = TXOutput.newTXOutput(SUBSIDY, to);
-        // 创建交易
-        Transaction tx = new Transaction(null, new TXInput[]{txInput},
-                new TXOutput[]{txOutput}, System.currentTimeMillis());
-        // 设置交易ID
-        tx.setTxId(tx.hash());
-        return tx;
-    }
-
-    /**
      * 是否为 Coinbase 交易
      *
      * @return
@@ -106,59 +73,6 @@ public class Transaction {
                 && this.getInputs()[0].getTxId().length == 0
                 && this.getInputs()[0].getTxOutputIndex() == -1;
     }
-
-
-    /**
-     * 从 from 向  to 支付一定的 amount 的金额
-     *
-     * @param from       支付钱包地址
-     * @param to         收款钱包地址
-     * @param amount     交易金额
-     * @param blockchain 区块链
-     * @return
-     */
-    public static Transaction newUTXOTransaction(String from, String to, int amount, Blockchain blockchain) throws Exception {
-        // 获取钱包
-        Wallet senderWallet = WalletUtils.getInstance().getWallet(from);
-        byte[] pubKey = senderWallet.getPublicKey();
-        byte[] pubKeyHash = BtcAddressUtils.ripeMD160Hash(pubKey);
-
-        SpendableOutputResult result = new UTXOSet(blockchain).findSpendableOutputs(pubKeyHash, amount);
-        int accumulated = result.getAccumulated();
-        Map<String, int[]> unspentOuts = result.getUnspentOuts();
-
-        if (accumulated < amount) {
-            log.error("ERROR: Not enough funds ! accumulated=" + accumulated + ", amount=" + amount);
-            throw new RuntimeException("ERROR: Not enough funds ! ");
-        }
-        Iterator<Map.Entry<String, int[]>> iterator = unspentOuts.entrySet().iterator();
-
-        TXInput[] txInputs = {};
-        while (iterator.hasNext()) {
-            Map.Entry<String, int[]> entry = iterator.next();
-            String txIdStr = entry.getKey();
-            int[] outIds = entry.getValue();
-            byte[] txId = Hex.decodeHex(txIdStr.toCharArray());
-            for (int outIndex : outIds) {
-                txInputs = ArrayUtils.add(txInputs, new TXInput(txId, outIndex, null, pubKey));
-            }
-        }
-
-        TXOutput[] txOutput = {};
-        txOutput = ArrayUtils.add(txOutput, TXOutput.newTXOutput(amount, to));
-        if (accumulated > amount) {
-            txOutput = ArrayUtils.add(txOutput, TXOutput.newTXOutput((accumulated - amount), from));
-        }
-
-        Transaction newTx = new Transaction(null, txInputs, txOutput, System.currentTimeMillis());
-        newTx.setTxId(newTx.hash());
-
-        // 进行交易签名
-        blockchain.signTransaction(newTx, senderWallet.getPrivateKey());
-
-        return newTx;
-    }
-
 
     /**
      * 创建用于签名的交易数据副本，交易输入的 signature 和 pubKey 需要设置为null
