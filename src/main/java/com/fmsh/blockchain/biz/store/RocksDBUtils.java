@@ -39,11 +39,6 @@ public class RocksDBUtils {
      */
     private static final String CHAINSTATE_BUCKET_KEY = "chainstate";
 
-    /**
-     * 最新一个区块
-     */
-    private static final String LAST_BLOCK_KEY = "l";
-
     private volatile static RocksDBUtils instance;
 
     public static RocksDBUtils getInstance() {

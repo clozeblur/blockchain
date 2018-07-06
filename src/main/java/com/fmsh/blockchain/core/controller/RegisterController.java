@@ -1,14 +1,18 @@
 package com.fmsh.blockchain.core.controller;
 
-import org.springframework.stereotype.Controller;
+import com.fmsh.blockchain.core.bean.BaseData;
+import com.fmsh.blockchain.core.service.PairKeyService;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
 
 /**
  * @Author: yuanjiaxin
- * @Date: 2018/7/4 14:48
+ * @Date: 2018/7/6 14:40
  * @Description:
  */
-@Controller
+@RestController
 @RequestMapping("/register")
 public class RegisterController {
 
