@@ -2,6 +2,7 @@ package com.fmsh.blockchain.biz.transaction;
 
 import com.fmsh.blockchain.biz.block.Block;
 import com.fmsh.blockchain.biz.block.Blockchain;
+import com.fmsh.blockchain.biz.block.Instruction;
 import com.fmsh.blockchain.biz.store.RocksDBUtils;
 import com.fmsh.blockchain.biz.util.SerializeUtils;
 import com.google.common.collect.Maps;
@@ -12,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.ArrayUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -116,7 +119,12 @@ public class UTXOSet {
             log.error("Fail to update UTXO set ! tipBlock is null !");
             throw new RuntimeException("Fail to update UTXO set ! ");
         }
-        for (Transaction transaction : tipBlock.getTransactions()) {
+
+        List<Transaction> transactions = new ArrayList<>();
+        for (Instruction instruction : tipBlock.getBlockBody().getInstructions()) {
+            transactions.add(instruction.getTransaction());
+        }
+        for (Transaction transaction : transactions) {
 
             // 根据交易输入排查出剩余未被使用的交易输出
             if (!transaction.isCoinbase()) {

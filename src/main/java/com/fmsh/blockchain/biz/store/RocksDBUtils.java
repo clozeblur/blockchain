@@ -25,7 +25,7 @@ public class RocksDBUtils {
     /**
      * 区块链数据文件
      */
-    private static final String DB_FILE = "blockchain.db";
+    private static final String DB_FILE = "blockchain5.db";
     /**
      * 常量桶key
      */

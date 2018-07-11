@@ -1,0 +1,18 @@
+spring:
+  jpa:
+    show-sql: false
+    database-platform: com.fmsh.blockchain.core.sqlite.config.SQLiteDialect
+    generate-ddl: true
+#sqlite:
+#  dbName: a.db  #本地sqlite的名字
+db:
+  levelDB: false    #在部分Windows机器上rocksDB会报错dll找不到，那么就用levelDB来替代
+  rocksDB: true
+version: 1
+name: ${NAME:node5}
+appId: ${APP_ID:node5}
+managerUrl: ${MANAGER_URL:http://localhost:8888/}
+
+singeNode: true
+server.port: 15000
+sqlite.dbName: node5.db

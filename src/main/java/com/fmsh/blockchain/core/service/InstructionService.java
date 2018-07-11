@@ -60,11 +60,11 @@ public class InstructionService {
             instruction.setInstructionId(CommonUtil.generateUuid());
         }
         instruction.setTimestamp(CommonUtil.getNow());
-        String buildStr = getSignString(instruction);
-        //设置签名，供其他人验证
-        instruction.setSign(TrustSDK.signString(instructionBody.getPrivateKey(), buildStr));
-        //设置hash，防止篡改
-        instruction.setHash(Sha256.sha256(buildStr));
+//        String buildStr = getSignString(instruction);
+//        //设置签名，供其他人验证
+//        instruction.setSign(TrustSDK.signString(instructionBody.getPrivateKey(), buildStr));
+//        //设置hash，防止篡改
+//        instruction.setHash(Sha256.sha256(buildStr));
 
         return instruction;
     }

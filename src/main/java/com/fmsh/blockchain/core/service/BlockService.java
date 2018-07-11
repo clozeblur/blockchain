@@ -64,12 +64,12 @@ public class BlockService {
             if (!StrUtil.equals(blockRequestBody.getPublicKey(), instruction.getPublicKey())) {
                 return "指令内公钥和传来的公钥不匹配";
             }
-            if (!instructionService.checkSign(instruction)) {
-                return "签名校验不通过";
-            }
-            if (!instructionService.checkHash(instruction)) {
-                return "Hash校验不通过";
-            }
+//            if (!instructionService.checkSign(instruction)) {
+//                return "签名校验不通过";
+//            }
+//            if (!instructionService.checkHash(instruction)) {
+//                return "Hash校验不通过";
+//            }
         }
 
         return null;

@@ -45,4 +45,6 @@ public interface Constants {
      * 每个表的权限存储key
      */
     String KEY_PERMISSION = "key_permission_";
+
+    String WALLET_PROPERTIES = "wallet.properties";
 }

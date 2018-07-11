@@ -2,7 +2,9 @@ package com.fmsh.blockchain.core.sqlite.config;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.metamodel.internal.MetamodelImpl;
 import org.hibernate.persister.entity.AbstractEntityPersister;
+import org.hibernate.persister.entity.EntityPersister;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,11 +28,11 @@ public class ModelMetaData {
             throw new NullPointerException("factory is not a hibernate factory");
         }
         SessionFactory sessionFactory = factory.unwrap(SessionFactory.class);
-        Map<String, ClassMetadata> metaMap = sessionFactory.getAllClassMetadata();
-        Map<String, Class> map = new HashMap<>(metaMap.size());
-        for (String key : metaMap.keySet()) {
-            AbstractEntityPersister classMetadata = (AbstractEntityPersister) metaMap
-                    .get(key);
+
+        Map<String, EntityPersister> entityMap = ((MetamodelImpl) sessionFactory.getMetamodel()).entityPersisters();
+        Map<String, Class> map = new HashMap<>(entityMap.size());
+        for (String key : entityMap.keySet()) {
+            AbstractEntityPersister classMetadata = (AbstractEntityPersister) entityMap.get(key);
             String tableName = classMetadata.getTableName().toLowerCase();
             int index = tableName.indexOf(".");
             if (index >= 0) {
@@ -38,6 +40,18 @@ public class ModelMetaData {
             }
             map.put(tableName, Class.forName(key));
         }
+//        Map<String, ClassMetadata> metaMap = sessionFactory.getAllClassMetadata();
+//        Map<String, Class> map = new HashMap<>(metaMap.size());
+//        for (String key : metaMap.keySet()) {
+//            AbstractEntityPersister classMetadata = (AbstractEntityPersister) metaMap
+//                    .get(key);
+//            String tableName = classMetadata.getTableName().toLowerCase();
+//            int index = tableName.indexOf(".");
+//            if (index >= 0) {
+//                tableName = tableName.substring(index + 1);
+//            }
+//            map.put(tableName, Class.forName(key));
+//        }
         return map;
     }
 

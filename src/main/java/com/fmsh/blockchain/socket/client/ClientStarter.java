@@ -81,7 +81,7 @@ public class ClientStarter {
 
                 nodes.clear();
                 for (Member member : memberList) {
-                    Node node = new Node(member.getIp(), Const.PORT);
+                    Node node = new Node(member.getIp(), member.getPort() + 1);
                     nodes.add(node);
                 }
                 //开始尝试绑定到对方开启的server

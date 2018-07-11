@@ -1,6 +1,6 @@
 package com.fmsh.blockchain.socket.server;
 
-import com.fmsh.blockchain.common.Const;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.tio.server.AioServer;
 import org.tio.server.ServerGroupContext;
@@ -18,13 +18,19 @@ import java.io.IOException;
 @Component
 public class BlockServerStarter {
 
+    @Value("${server.port:6789}")
+    private Integer port;
+
     @PostConstruct
     public void serverStart() throws IOException {
+        System.out.println("==================================");
+        System.out.println(port);
+        System.out.println("==================================");
         ServerAioHandler serverAioHandler = new BlockServerAioHandler();
         ServerAioListener serverAioListener = new BlockServerAioListener();
         ServerGroupContext serverGroupContext = new ServerGroupContext(serverAioHandler, serverAioListener);
         AioServer aioServer = new AioServer(serverGroupContext);
         //本机启动服务
-        aioServer.start(null, Const.PORT);
+        aioServer.start(null, port + 1);
     }
 }

@@ -72,7 +72,7 @@ public class BlockController {
      * @param content
      * sql内容
      */
-    @GetMapping
+    @GetMapping("/test")
     public BaseData test(String content) throws Exception {
         InstructionBody instructionBody = new InstructionBody();
         instructionBody.setOperation(Operation.ADD);
