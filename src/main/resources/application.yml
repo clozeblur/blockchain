@@ -9,10 +9,12 @@ db:
   levelDB: false    #在部分Windows机器上rocksDB会报错dll找不到，那么就用levelDB来替代
   rocksDB: true
 version: 1
-name: ${NAME:node5}
-appId: ${APP_ID:node5}
+name: ${NAME:node4}
+appId: ${APP_ID:node4}
 managerUrl: ${MANAGER_URL:http://localhost:8888/}
 
-singeNode: true
-server.port: 15000
-sqlite.dbName: node5.db
+#singeNode: false
+server.port: 8084
+block.port: 14000
+
+sqlite.dbName: node.db

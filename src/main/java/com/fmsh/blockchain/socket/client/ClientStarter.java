@@ -22,6 +22,7 @@ import org.tio.core.ChannelContext;
 import org.tio.core.Node;
 import org.tio.utils.lock.SetWithLock;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.HashSet;
 import java.util.List;
@@ -53,11 +54,20 @@ public class ClientStarter {
     @Value("${singeNode:false}")
     private Boolean singeNode;
 
+    @Value("${block.port}")
+    private Integer port;
+
     private Set<Node> nodes = new HashSet<>();
     
     // 节点连接状态
     private Map<String,Integer> nodesStatus = Maps.newConcurrentMap();
     private volatile boolean isNodesReady = false; // 节点是否已准备好
+
+    @PostConstruct
+    public void init() {
+        System.out.println("test ok!");
+        System.out.println("====================");
+    }
 
     /**
      * 从麦达区块链管理端获取已登记的各服务器ip
@@ -65,7 +75,8 @@ public class ClientStarter {
      */
     @Scheduled(fixedRate = 300000)
     public void fetchOtherServer() {
-        String localIp = CommonUtil.getLocalIp();
+        String localIp = "127.0.0.1";
+//                CommonUtil.getLocalIp();
         log.info("本机IP：{}",localIp);
         try {
             //如果连不上服务器，就不让启动
@@ -81,7 +92,8 @@ public class ClientStarter {
 
                 nodes.clear();
                 for (Member member : memberList) {
-                    Node node = new Node(member.getIp(), member.getPort() + 1);
+//                    if (port.equals(member.getPort())) continue;
+                    Node node = new Node(member.getIp(), member.getPort());
                     nodes.add(node);
                 }
                 //开始尝试绑定到对方开启的server

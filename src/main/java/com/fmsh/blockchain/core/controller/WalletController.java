@@ -66,9 +66,6 @@ public class WalletController {
         if (StringUtils.isEmpty(username)) {
             return "username输入为空";
         }
-//        if (PairKeyPersist.getWalletMap().get("username") != null) {
-//            return "本节点已经注册了钱包";
-//        }
         Wallet wallet = WalletUtils.getInstance().createWallet();
         String address = wallet.getAddress();
 
@@ -100,9 +97,6 @@ public class WalletController {
         }
 
         Blockchain blockchain = blockchain(PairKeyPersist.getWalletMap().get("address"));
-        UTXOSet utxoSet = new UTXOSet(blockchain);
-        utxoSet.reIndex();
-
         return blockchain.toString();
     }
 
@@ -145,7 +139,6 @@ public class WalletController {
     public String send(String sender, String receiver, int amount) throws Exception {
         UserData receiverData = restTemplate.getForEntity(managerUrl + "user/getUser?username=" + receiver, UserData.class).getBody();
         String to = receiverData.getUser().getAddress();
-//        String from = PairKeyPersist.getWalletMap().get("address");
 
         UserData senderData = restTemplate.getForEntity(managerUrl + "user/getUser?username=" + sender, UserData.class).getBody();
         String from = senderData.getUser().getAddress();
@@ -175,10 +168,6 @@ public class WalletController {
         Transaction transaction = Transaction.newUTXOTransaction(from, to, amount, blockchain);
 
         Block block = newBlock(transaction, "from:" + from + ",to:" + to, from);
-        new UTXOSet(blockchain).update(block);
-
-        RocksDBUtils.getInstance().putLastBlockHash(block.getHash());
-        RocksDBUtils.getInstance().putBlock(block);
         return "发送成功";
     }
 
@@ -217,10 +206,6 @@ public class WalletController {
             Transaction coinbaseTX = Transaction.newCoinbaseTX(address, genesisCoinbaseData);
 
             Block genesisBlock = newBlock(coinbaseTX, genesisCoinbaseData, address);
-
-            lastBlockHash = genesisBlock.getHash();
-            RocksDBUtils.getInstance().putBlock(genesisBlock);
-            RocksDBUtils.getInstance().putLastBlockHash(lastBlockHash);
         }
         return new Blockchain(lastBlockHash);
     }

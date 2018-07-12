@@ -43,8 +43,15 @@ public abstract class AbstractVoteMsgQueue extends BaseMsgQueue {
 
         //添加进去
         voteMsgs.add(voteMsg);
+
+        log.info("hash:" + hash);
+        for (VoteMsg msg : voteMsgs) {
+            log.info(msg.toString());
+        }
+
         //如果已经对该hash投过票了，就不再继续
         if (voteStateConcurrentHashMap.get(hash) != null) {
+            log.info("已经对该hash投过票了，就不再继续");
             return;
         }
 

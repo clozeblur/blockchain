@@ -42,6 +42,8 @@ public class PrepareMsgQueue extends AbstractVoteMsgQueue {
         BeanUtil.copyProperties(voteMsg, commitMsg);
         commitMsg.setVoteType(VoteType.COMMIT);
         commitMsg.setAppId(AppId.value);
+
+        log.info("===========================================commit===========================================");
         //开始校验并决定是否进入commit阶段
         //校验该vote是否合法
         if (commitMsgQueue.hasOtherConfirm(hash, voteMsg.getNumber())) {
@@ -50,6 +52,12 @@ public class PrepareMsgQueue extends AbstractVoteMsgQueue {
             //开始校验拜占庭数量，如果agree的超过2f + 1，就commit
             long agreeCount = voteMsgs.stream().filter(VoteMsg::isAgree).count();
             long unAgreeCount = voteMsgs.size() - agreeCount;
+
+
+            log.info("agreeCount:" + agreeCount);
+            log.info("unAgreeCount:" + unAgreeCount);
+            log.info("pbftAgreeSize:" + pbftAgreeSize());
+            log.info("pbftSize:" + pbftSize());
 
             //开始发出commit的同意or拒绝的消息
             if (agreeCount >= pbftAgreeSize()) {

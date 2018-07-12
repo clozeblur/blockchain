@@ -18,19 +18,16 @@ import java.io.IOException;
 @Component
 public class BlockServerStarter {
 
-    @Value("${server.port:6789}")
+    @Value("${block.port:6789}")
     private Integer port;
 
     @PostConstruct
     public void serverStart() throws IOException {
-        System.out.println("==================================");
-        System.out.println(port);
-        System.out.println("==================================");
         ServerAioHandler serverAioHandler = new BlockServerAioHandler();
         ServerAioListener serverAioListener = new BlockServerAioListener();
         ServerGroupContext serverGroupContext = new ServerGroupContext(serverAioHandler, serverAioListener);
         AioServer aioServer = new AioServer(serverGroupContext);
         //本机启动服务
-        aioServer.start(null, port + 1);
+        aioServer.start(null, port);
     }
 }

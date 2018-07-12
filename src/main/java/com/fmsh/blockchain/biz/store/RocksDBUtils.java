@@ -25,7 +25,7 @@ public class RocksDBUtils {
     /**
      * 区块链数据文件
      */
-    private static final String DB_FILE = "blockchain5.db";
+    private static final String DB_FILE = "blockchain.db";
     /**
      * 常量桶key
      */
@@ -233,7 +233,8 @@ public class RocksDBUtils {
         if (blockBytes != null) {
             return (Block) SerializeUtils.deserialize(blockBytes);
         }
-        throw new RuntimeException("Fail to get block ! blockHash=" + blockHash);
+        log.error("Fail to get block ! blockHash=" + blockHash);
+        return null;
     }
 
 

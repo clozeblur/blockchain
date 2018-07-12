@@ -33,6 +33,11 @@ public class BlockChecker {
      */
     public int checkNum(Block block) {
         Block localBlock = blockManager.getLastBlock();
+
+        if (localBlock == null && block.getBlockHeader().getPrevBlockHash() == null) {
+            return 0;
+        }
+
         int localNum = 0;
         if (localBlock != null) {
             localNum = localBlock.getBlockHeader().getNumber();

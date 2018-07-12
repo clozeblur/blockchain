@@ -2,7 +2,9 @@ package com.fmsh.blockchain.core.manager;
 
 import com.fmsh.blockchain.ApplicationContextProvider;
 import com.fmsh.blockchain.biz.block.Block;
+import com.fmsh.blockchain.biz.block.Blockchain;
 import com.fmsh.blockchain.biz.store.RocksDBUtils;
+import com.fmsh.blockchain.biz.transaction.UTXOSet;
 import com.fmsh.blockchain.common.Constants;
 import com.fmsh.blockchain.core.event.AddBlockEvent;
 import com.fmsh.blockchain.core.event.DbSyncEvent;
@@ -47,12 +49,19 @@ public class BlockGenerator {
             return;
         }
 
+        Blockchain blockchain = new Blockchain(hash);
+        UTXOSet utxoSet = new UTXOSet(blockchain);
+
         //如果没有上一区块，说明该块就是创世块
         if (block.getBlockHeader().getPrevBlockHash() == null) {
             RocksDBUtils.getInstance().normalPut(Constants.KEY_FIRST_BLOCK, hash);
+
+            utxoSet.reIndex();
         } else {
             //保存上一区块对该区块的key value映射
             RocksDBUtils.getInstance().normalPut(Constants.KEY_BLOCK_NEXT_PREFIX + block.getBlockHeader().getPrevBlockHash(), hash);
+
+            utxoSet.update(block);
         }
         //存入rocksDB
         RocksDBUtils.getInstance().putBlock(block);
