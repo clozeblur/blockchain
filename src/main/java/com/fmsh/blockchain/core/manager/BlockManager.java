@@ -26,6 +26,14 @@ public class BlockManager {
         return getBlockByHash(firstBlockHash);
     }
 
+    public String getFirstBlockHash() {
+        Block block = getFirstBlock();
+        if (block != null) {
+            return block.getHash();
+        }
+        return null;
+    }
+
     /**
      * 获取最后一个区块信息
      *

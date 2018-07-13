@@ -55,72 +55,84 @@ public class WalletController {
     @Resource
     private BlockManager blockManager;
 
-    @GetMapping("/clean")
-    public void cleanWallet() {
-        PairKeyPersist.setWalletMap(new HashMap<>());
-    }
+//    @GetMapping("/clean")
+//    public void cleanWallet() {
+//        PairKeyPersist.setWalletMap(new HashMap<>());
+//    }
+//
+//    @GetMapping("/init")
+//    @ResponseBody
+//    public String register(String username) {
+//        if (StringUtils.isEmpty(username)) {
+//            return "username输入为空";
+//        }
+//        Wallet wallet = WalletUtils.getInstance().createWallet();
+//        String address = wallet.getAddress();
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+//
+//        MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
+//        map.add("username", username);
+//        map.add("address", address);
+//
+//        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
+//
+//        BaseData base = restTemplate.postForObject(managerUrl + "user/register", request, BaseData.class);
+//        if (base.getCode() == 0) {
+//            Map<String, String> walletMap = new HashMap<>();
+//            walletMap.put("username", username);
+//            walletMap.put("address", address);
+//            PairKeyPersist.setWalletMap(walletMap);
+//            return "成功注册,您的地址为: " + PairKeyPersist.getWalletMap().get("address");
+//        }
+//        return "内存错误";
+//    }
 
-    @GetMapping("/init")
-    @ResponseBody
-    public String register(String username) throws Exception {
-        if (StringUtils.isEmpty(username)) {
-            return "username输入为空";
-        }
-        Wallet wallet = WalletUtils.getInstance().createWallet();
-        String address = wallet.getAddress();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
-        map.add("username", username);
-        map.add("address", address);
-
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
-
-        BaseData base = restTemplate.postForObject(managerUrl + "user/register", request, BaseData.class);
-        if (base.getCode() == 0) {
-            Map<String, String> walletMap = new HashMap<>();
-            walletMap.put("username", username);
-            walletMap.put("address", address);
-            PairKeyPersist.setWalletMap(walletMap);
-            return "成功注册,您的地址为: " + PairKeyPersist.getWalletMap().get("address");
-        }
-        return "内存错误";
-    }
-
-    @GetMapping("/createBlockchain")
-    @ResponseBody
-    public String createBlockchain() throws Exception {
-        if (PairKeyPersist.getWalletMap().get("username") == null) {
-            return "您还没有初始化钱包";
-        }
-
-        Blockchain blockchain = blockchain(PairKeyPersist.getWalletMap().get("address"));
-        return blockchain.toString();
-    }
-
-    @GetMapping("/getBalance")
-    @ResponseBody
-    public String getBalance(@RequestParam(required = false, value = "address") String addr) throws Exception {
+//    @GetMapping("/createBlockchain")
+//    @ResponseBody
+//    public String createBlockchain() throws Exception {
 //        if (PairKeyPersist.getWalletMap().get("username") == null) {
 //            return "您还没有初始化钱包";
 //        }
-        String address = addr == null ? PairKeyPersist.getWalletMap().get("address") : addr;
+//
+//        Blockchain blockchain = blockchain(PairKeyPersist.getWalletMap().get("address"));
+//        return blockchain.toString();
+//    }
 
-        // 检查钱包地址是否合法
-        try {
-            Base58Check.base58ToBytes(address);
-        } catch (Exception e) {
-            log.error("ERROR: invalid wallet address", e);
-            throw new RuntimeException("ERROR: invalid wallet address", e);
-        }
+//    @GetMapping("/getBalance")
+//    @ResponseBody
+//    public String getBalance(@RequestParam("username") String username) throws Exception {
+//        String address = getAddress(username);
+//
+//        // 检查钱包地址是否合法
+//        try {
+//            Base58Check.base58ToBytes(address);
+//        } catch (Exception e) {
+//            log.error("ERROR: invalid wallet address", e);
+//            throw new RuntimeException("ERROR: invalid wallet address", e);
+//        }
+//
+//        // 得到公钥Hash值
+//        byte[] versionedPayload = Base58Check.base58ToBytes(address);
+//        byte[] pubKeyHash = Arrays.copyOfRange(versionedPayload, 1, versionedPayload.length);
+//
+//
+//        Blockchain blockchain = blockchain(address);
+//        UTXOSet utxoSet = new UTXOSet(blockchain);
+//
+//        TXOutput[] txOutputs = utxoSet.findUTXOs(pubKeyHash);
+//        int balance = 0;
+//        if (txOutputs != null && txOutputs.length > 0) {
+//            for (TXOutput txOutput : txOutputs) {
+//                balance += txOutput.getValue();
+//            }
+//        }
+//        return "address: " + address + "  balance: " + balance;
+//    }
 
-        // 得到公钥Hash值
-        byte[] versionedPayload = Base58Check.base58ToBytes(address);
-        byte[] pubKeyHash = Arrays.copyOfRange(versionedPayload, 1, versionedPayload.length);
-
-
+    @PostMapping("/checkBalance")
+    public String checkBalance(String address, byte[] pubKeyHash) throws Exception {
         Blockchain blockchain = blockchain(address);
         UTXOSet utxoSet = new UTXOSet(blockchain);
 
@@ -131,17 +143,15 @@ public class WalletController {
                 balance += txOutput.getValue();
             }
         }
-        return "address: " + address + "  balance: " + balance;
+        return String.valueOf(balance);
     }
 
     @GetMapping("/send")
     @ResponseBody
     public String send(String sender, String receiver, int amount) throws Exception {
-        UserData receiverData = restTemplate.getForEntity(managerUrl + "user/getUser?username=" + receiver, UserData.class).getBody();
-        String to = receiverData.getUser().getAddress();
+        String to = getAddress(receiver);
 
-        UserData senderData = restTemplate.getForEntity(managerUrl + "user/getUser?username=" + sender, UserData.class).getBody();
-        String from = senderData.getUser().getAddress();
+        String from = getAddress(sender);
 
         // 检查钱包地址是否合法
         try {
@@ -171,6 +181,17 @@ public class WalletController {
         return "发送成功";
     }
 
+    @GetMapping("/getLastBlockHash")
+    @ResponseBody
+    public String getLastBlockHash() {
+        return blockManager.getLastBlockHash();
+    }
+
+    @GetMapping("/getFirstBlockHash")
+    public String getFirstBlockHash() {
+        return blockManager.getFirstBlockHash();
+    }
+
     @GetMapping("/getLastBlock")
     @ResponseBody
     public Block getLastBlock() {
@@ -185,7 +206,9 @@ public class WalletController {
 
     @GetMapping("/requestCoin")
     @ResponseBody
-    public String requestCoin(@RequestParam("address") String address, @RequestParam("amount") Integer amount) throws Exception {
+    public String requestCoin(@RequestParam("username") String username, @RequestParam("amount") Integer amount) throws Exception {
+        String address = getAddress(username);
+
         Blockchain blockchain = blockchain(address);
         // 新交易
         Transaction transaction = Transaction.requestedCoinTX(address, amount);
@@ -195,7 +218,28 @@ public class WalletController {
 
         RocksDBUtils.getInstance().putLastBlockHash(block.getHash());
         RocksDBUtils.getInstance().putBlock(block);
-        return getBalance(address);
+//        return getBalance(address);
+        return null;
+    }
+
+    private String getAddress(String username) {
+        UserData receiverData = restTemplate.getForEntity(managerUrl + "user/getUser?username=" + username, UserData.class).getBody();
+        return receiverData.getUser().getAddress();
+    }
+
+    @PostMapping("/generateBlock")
+    public Block generateBlock(InstructionBody instructionBody, Transaction transaction) throws Exception {
+        Instruction instruction = instructionService.build(instructionBody);
+        instruction.setTransaction(transaction);
+
+        BlockRequestBody blockRequestBody = new BlockRequestBody();
+        blockRequestBody.setPublicKey(instructionBody.getPublicKey());
+        BlockBody blockBody = new BlockBody();
+        blockBody.setInstructions(CollectionUtil.newArrayList(instruction));
+
+        blockRequestBody.setBlockBody(blockBody);
+
+        return blockService.addBlock(blockRequestBody);
     }
 
     private Blockchain blockchain(String address) throws Exception {

@@ -47,49 +47,6 @@ public class Blockchain {
     }
 
     /**
-     * <p> 创建区块链 </p>
-     *
-     * @param address 钱包地址
-     * @return
-     */
-    public static Blockchain createBlockchain(String address) {
-        String lastBlockHash = RocksDBUtils.getInstance().getLastBlockHash();
-        if (StringUtils.isBlank(lastBlockHash)) {
-            // 创建 coinBase 交易
-//            String genesisCoinbaseData = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
-//            Transaction coinbaseTX = Transaction.newCoinbaseTX(address, genesisCoinbaseData);
-//            Block genesisBlock = Block.newGenesisBlock(coinbaseTX);
-//            lastBlockHash = genesisBlock.getHash();
-//            RocksDBUtils.getInstance().putBlock(genesisBlock);
-//            RocksDBUtils.getInstance().putLastBlockHash(lastBlockHash);
-        }
-        return new Blockchain(lastBlockHash);
-    }
-
-    /**
-     * 打包交易，进行挖矿
-     *
-     * @param transactions
-     */
-    public Block mineBlock(Transaction[] transactions) {
-        // 挖矿前，先验证交易记录
-        for (Transaction tx : transactions) {
-            if (!this.verifyTransactions(tx)) {
-                log.error("ERROR: Fail to mine block ! Invalid transaction ! tx=" + tx.toString());
-                throw new RuntimeException("ERROR: Fail to mine block ! Invalid transaction ! ");
-            }
-        }
-        String lastBlockHash = RocksDBUtils.getInstance().getLastBlockHash();
-        if (lastBlockHash == null) {
-            throw new RuntimeException("ERROR: Fail to get last block hash ! ");
-        }
-
-        Block block = Block.newBlock(lastBlockHash, transactions);
-        this.addBlock(block);
-        return block;
-    }
-
-    /**
      * <p> 添加区块  </p>
      *
      * @param block
@@ -99,7 +56,6 @@ public class Blockchain {
         RocksDBUtils.getInstance().putBlock(block);
         this.lastBlockHash = block.getHash();
     }
-
 
     /**
      * 区块链迭代器

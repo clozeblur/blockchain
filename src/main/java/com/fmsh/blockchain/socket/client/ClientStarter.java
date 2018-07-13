@@ -80,7 +80,7 @@ public class ClientStarter {
         log.info("本机IP：{}",localIp);
         try {
             //如果连不上服务器，就不让启动
-            MemberData memberData = restTemplate.getForEntity(managerUrl + "member?name=" + name + "&appId=" + AppId
+            MemberData memberData = restTemplate.getForEntity(managerUrl + "member/memberData?name=" + name + "&appId=" + AppId
                             .value +
                             "&ip=" +
                             localIp,
@@ -92,7 +92,6 @@ public class ClientStarter {
 
                 nodes.clear();
                 for (Member member : memberList) {
-//                    if (port.equals(member.getPort())) continue;
                     Node node = new Node(member.getIp(), member.getPort());
                     nodes.add(node);
                 }
@@ -109,29 +108,6 @@ public class ClientStarter {
         }
 
     }
-
-//    /**
-//     * 从区块链管理端获取权限信息，一天获取一次即可
-//     */
-//    @Scheduled(fixedRate = 1000 * 60 * 60 * 24, initialDelay = 2000)
-//    public void fetchPermission() {
-//        try {
-//            //如果连不上服务器，就不让启动
-//            PermissionData permissionData = restTemplate.getForEntity(managerUrl + "permission?name=" + name,
-//                    PermissionData.class).getBody();
-//            //获取到权限
-//            if (permissionData.getCode() == 0) {
-//                List<Permission> permissionList = permissionData.getPermissions();
-//                permissionManager.savePermissionList(permissionList);
-//            } else {
-//                logger.error("无法获取权限信息");
-//                System.exit(0);
-//            }
-//        } catch (Exception e) {
-//            logger.error("请先启动md_blockchain_manager服务，并配置appId等属性，只有合法联盟链成员才能启动该服务");
-//            System.exit(0);
-//        }
-//    }
 
     /**
      * 每30秒群发一次消息，和别人对比最新的Block
