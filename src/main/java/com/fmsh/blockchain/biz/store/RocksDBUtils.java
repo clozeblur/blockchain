@@ -130,6 +130,7 @@ public class RocksDBUtils {
     /**
      * 初始化 blocks 数据桶
      */
+    @SuppressWarnings("unchecked")
     private void initChainStateBucket() {
         try {
             byte[] chainstateBucketKey = SerializeUtils.serialize(CHAINSTATE_BUCKET_KEY);

@@ -20,6 +20,7 @@ import com.fmsh.blockchain.core.service.BlockService;
 import com.fmsh.blockchain.core.service.InstructionService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -132,9 +133,12 @@ public class WalletController {
 //    }
 
     @PostMapping("/checkBalance")
-    public String checkBalance(String address, byte[] pubKeyHash) throws Exception {
+    public String checkBalance(@RequestParam("address") String address) throws Exception {
         Blockchain blockchain = blockchain(address);
         UTXOSet utxoSet = new UTXOSet(blockchain);
+
+        byte[] versionedPayload = Base58Check.base58ToBytes(address);
+        byte[] pubKeyHash = Arrays.copyOfRange(versionedPayload, 1, versionedPayload.length);
 
         TXOutput[] txOutputs = utxoSet.findUTXOs(pubKeyHash);
         int balance = 0;
@@ -146,11 +150,48 @@ public class WalletController {
         return String.valueOf(balance);
     }
 
-    @GetMapping("/send")
-    @ResponseBody
-    public String send(String sender, String receiver, int amount) throws Exception {
-        String to = getAddress(receiver);
+//    @GetMapping("/send")
+//    @ResponseBody
+//    public String send(String sender, String receiver, Integer amount) throws Exception {
+//        String to = getAddress(receiver);
+//
+//        String from = getAddress(sender);
+//
+//        // 检查钱包地址是否合法
+//        try {
+//            Base58Check.base58ToBytes(from);
+//        } catch (Exception e) {
+//            log.error("ERROR: sender address invalid ! address=" + from, e);
+//            throw new RuntimeException("ERROR: sender address invalid ! address=" + from, e);
+//        }
+//        // 检查钱包地址是否合法
+//        try {
+//            Base58Check.base58ToBytes(to);
+//        } catch (Exception e) {
+//            log.error("ERROR: receiver address invalid ! address=" + to, e);
+//            throw new RuntimeException("ERROR: receiver address invalid ! address=" + to, e);
+//        }
+//        if (amount < 1) {
+//            log.error("ERROR: amount invalid ! amount=" + amount);
+//            throw new RuntimeException("ERROR: amount invalid ! amount=" + amount);
+//        }
+//
+//        Blockchain blockchain = blockchain(from);
+//
+//        // 新交易
+//        Transaction transaction = Transaction.newUTXOTransaction(from, to, amount, blockchain);
+//
+//        Block block = newBlock(transaction, "from:" + from + ",to:" + to, from);
+//        return "发送成功";
+//    }
 
+    @PostMapping("/doSend")
+    @ResponseBody
+    public String doSend(@RequestParam("sender") String sender,
+                         @RequestParam("receiver") String receiver,
+                         @RequestParam("pk") byte[] pk,
+                         @RequestParam("sk") BCECPrivateKey sk,
+                         @RequestParam("amount") Integer amount) throws Exception {
         String from = getAddress(sender);
 
         // 检查钱包地址是否合法
@@ -160,6 +201,8 @@ public class WalletController {
             log.error("ERROR: sender address invalid ! address=" + from, e);
             throw new RuntimeException("ERROR: sender address invalid ! address=" + from, e);
         }
+
+        String to = getAddress(receiver);
         // 检查钱包地址是否合法
         try {
             Base58Check.base58ToBytes(to);
@@ -167,18 +210,14 @@ public class WalletController {
             log.error("ERROR: receiver address invalid ! address=" + to, e);
             throw new RuntimeException("ERROR: receiver address invalid ! address=" + to, e);
         }
-        if (amount < 1) {
-            log.error("ERROR: amount invalid ! amount=" + amount);
-            throw new RuntimeException("ERROR: amount invalid ! amount=" + amount);
-        }
 
-        Blockchain blockchain = blockchain(from);
+        String lastBlockHash = RocksDBUtils.getInstance().getLastBlockHash();
+        Blockchain blockchain = new Blockchain(lastBlockHash);
 
-        // 新交易
-        Transaction transaction = Transaction.newUTXOTransaction(from, to, amount, blockchain);
+        Transaction transaction = Transaction.newUTXOTransaction(from, to, pk, sk, amount, blockchain);
+        newBlock(transaction, "from:" + from + "|sender:" + sender + "发送了" + amount + "到 to:" + to + "|receiver:" + receiver, from);
 
-        Block block = newBlock(transaction, "from:" + from + ",to:" + to, from);
-        return "发送成功";
+        return checkBalance(from);
     }
 
     @GetMapping("/getLastBlockHash")
@@ -204,9 +243,10 @@ public class WalletController {
         return blockManager.getFirstBlock();
     }
 
-    @GetMapping("/requestCoin")
+    @PostMapping("/requestCoin")
     @ResponseBody
-    public String requestCoin(@RequestParam("username") String username, @RequestParam("amount") Integer amount) throws Exception {
+    public String requestCoin(@RequestParam("username") String username,
+                              @RequestParam("amount") Integer amount) throws Exception {
         String address = getAddress(username);
 
         Blockchain blockchain = blockchain(address);
@@ -218,8 +258,7 @@ public class WalletController {
 
         RocksDBUtils.getInstance().putLastBlockHash(block.getHash());
         RocksDBUtils.getInstance().putBlock(block);
-//        return getBalance(address);
-        return null;
+        return checkBalance(address);
     }
 
     private String getAddress(String username) {
@@ -228,7 +267,8 @@ public class WalletController {
     }
 
     @PostMapping("/generateBlock")
-    public Block generateBlock(InstructionBody instructionBody, Transaction transaction) throws Exception {
+    public Block generateBlock(@RequestParam("instructionBody") InstructionBody instructionBody,
+                               @RequestParam("transaction") Transaction transaction) throws Exception {
         Instruction instruction = instructionService.build(instructionBody);
         instruction.setTransaction(transaction);
 

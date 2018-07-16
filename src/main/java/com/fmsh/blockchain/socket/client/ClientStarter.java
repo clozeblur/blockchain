@@ -75,8 +75,9 @@ public class ClientStarter {
      */
     @Scheduled(fixedRate = 300000)
     public void fetchOtherServer() {
-        String localIp = "127.0.0.1";
-//                CommonUtil.getLocalIp();
+        String localIp =
+//                "127.0.0.1";
+                CommonUtil.getLocalIp();
         log.info("本机IP：{}",localIp);
         try {
             //如果连不上服务器，就不让启动
