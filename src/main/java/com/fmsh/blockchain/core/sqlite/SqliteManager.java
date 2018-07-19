@@ -60,7 +60,9 @@ public class SqliteManager {
             }
             log.info("正在导入区块，hash为：" + lastBlock.getHash());
             String hash = syncEntity.getHash();
+            log.info("syncEntity.hash为：" + hash);
             block = blockManager.getNextBlock(blockManager.getBlockByHash(hash));
+            log.info("下一个block为：" + block.getHash());
         }
         execute(block);
         ApplicationContextProvider.publishEvent(new DbSyncEvent(""));
@@ -75,11 +77,18 @@ public class SqliteManager {
      */
     @Transactional
     public void execute(Block block) {
-        List<Instruction> instructions = block.getBlockBody().getInstructions();
-        //InstructionParserImpl类里面执行的是InstructionBase，需要转成InstructionBase
-        for (Instruction instruction : instructions) {
-            instruction.setOldJson(instruction.getJson());
+        List<Instruction> instructions;
+        if (block.getBlockBody() == null) {
+            log.info("无区块体信息，");
+            instructions = new ArrayList<>();
+        } else {
+            instructions = block.getBlockBody().getInstructions();
+            //InstructionParserImpl类里面执行的是InstructionBase，需要转成InstructionBase
+            for (Instruction instruction : instructions) {
+                instruction.setOldJson(instruction.getJson());
+            }
         }
+
         doSqlParse(instructions);
 
         //保存已同步的进度

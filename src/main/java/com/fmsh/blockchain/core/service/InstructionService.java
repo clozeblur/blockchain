@@ -53,7 +53,7 @@ public class InstructionService {
      *         body
      * @return Instruction
      */
-    public Instruction build(InstructionBody instructionBody) throws Exception {
+    public Instruction build(InstructionBody instructionBody) {
         Instruction instruction = new Instruction();
         BeanUtil.copyProperties(instructionBody, instruction);
         if (Operation.ADD == instruction.getOperation()) {

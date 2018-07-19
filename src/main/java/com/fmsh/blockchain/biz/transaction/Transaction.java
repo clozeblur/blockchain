@@ -3,12 +3,12 @@ package com.fmsh.blockchain.biz.transaction;
 import com.fmsh.blockchain.biz.block.Blockchain;
 import com.fmsh.blockchain.biz.util.BtcAddressUtils;
 import com.fmsh.blockchain.biz.util.SerializeUtils;
-import com.fmsh.blockchain.biz.wallet.Wallet;
-import com.fmsh.blockchain.biz.wallet.WalletUtils;
+import com.fmsh.blockchain.common.exception.NotEnoughFundsException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -21,10 +21,7 @@ import org.bouncycastle.jce.spec.ECPublicKeySpec;
 import org.bouncycastle.math.ec.ECPoint;
 
 import java.math.BigInteger;
-import java.security.KeyFactory;
-import java.security.PublicKey;
-import java.security.Security;
-import java.security.Signature;
+import java.security.*;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
@@ -112,58 +109,18 @@ public class Transaction {
                 && this.getInputs()[0].getTxOutputIndex() == -1;
     }
 
-//    /**
-//     * 从 from 向  to 支付一定的 amount 的金额
-//     *
-//     * @param from       支付钱包地址
-//     * @param to         收款钱包地址
-//     * @param amount     交易金额
-//     * @param blockchain 区块链
-//     * @return
-//     */
-//    public static Transaction newUTXOTransaction(String from, String to, int amount, Blockchain blockchain) throws Exception {
-//        // 获取钱包
-//        Wallet senderWallet = WalletUtils.getInstance().getWallet(from);
-//        byte[] pubKey = senderWallet.getPublicKey();
-//        byte[] pubKeyHash = BtcAddressUtils.ripeMD160Hash(pubKey);
-//
-//        SpendableOutputResult result = new UTXOSet(blockchain).findSpendableOutputs(pubKeyHash, amount);
-//        int accumulated = result.getAccumulated();
-//        Map<String, int[]> unspentOuts = result.getUnspentOuts();
-//
-//        if (accumulated < amount) {
-//            log.error("ERROR: Not enough funds ! accumulated=" + accumulated + ", amount=" + amount);
-//            throw new RuntimeException("ERROR: Not enough funds ! ");
-//        }
-//        Iterator<Map.Entry<String, int[]>> iterator = unspentOuts.entrySet().iterator();
-//
-//        TXInput[] txInputs = {};
-//        while (iterator.hasNext()) {
-//            Map.Entry<String, int[]> entry = iterator.next();
-//            String txIdStr = entry.getKey();
-//            int[] outIds = entry.getValue();
-//            byte[] txId = Hex.decodeHex(txIdStr.toCharArray());
-//            for (int outIndex : outIds) {
-//                txInputs = ArrayUtils.add(txInputs, new TXInput(txId, outIndex, null, pubKey));
-//            }
-//        }
-//
-//        TXOutput[] txOutput = {};
-//        txOutput = ArrayUtils.add(txOutput, TXOutput.newTXOutput(amount, to));
-//        if (accumulated > amount) {
-//            txOutput = ArrayUtils.add(txOutput, TXOutput.newTXOutput((accumulated - amount), from));
-//        }
-//
-//        Transaction newTx = new Transaction(null, txInputs, txOutput, System.currentTimeMillis());
-//        newTx.setTxId(newTx.hash());
-//
-//        // 进行交易签名
-//        blockchain.signTransaction(newTx, senderWallet.getPrivateKey());
-//
-//        return newTx;
-//    }
-
-    public static Transaction newUTXOTransaction(String from, String to, byte[] publicKey, BCECPrivateKey privateKey, int amount, Blockchain blockchain) throws Exception {
+    /**
+     * 从 from 向  to 支付一定的 amount 的金额
+     *
+     * @param from       支付钱包地址
+     * @param to         收款钱包地址
+     * @param amount     交易金额
+     * @param blockchain 区块链
+     * @return
+     */
+    public static Transaction newUTXOTransaction(String from, String to, byte[] publicKey, BCECPrivateKey privateKey,
+                                                 int amount, Blockchain blockchain)
+            throws DecoderException, NotEnoughFundsException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException {
         byte[] pubKeyHash = BtcAddressUtils.ripeMD160Hash(publicKey);
 
         SpendableOutputResult result = new UTXOSet(blockchain).findSpendableOutputs(pubKeyHash, amount);
@@ -172,7 +129,8 @@ public class Transaction {
 
         if (accumulated < amount) {
             log.error("ERROR: Not enough funds ! accumulated=" + accumulated + ", amount=" + amount);
-            throw new RuntimeException("ERROR: Not enough funds ! ");
+//            throw new RuntimeException("ERROR: Not enough funds ! ");
+            throw new NotEnoughFundsException("ERROR: Not enough funds ! accumulated=" + accumulated + ", amount=" + amount);
         }
         Iterator<Map.Entry<String, int[]>> iterator = unspentOuts.entrySet().iterator();
 
@@ -229,7 +187,7 @@ public class Transaction {
      * @param privateKey 私钥
      * @param prevTxMap  前面多笔交易集合
      */
-    public void sign(BCECPrivateKey privateKey, Map<String, Transaction> prevTxMap) throws Exception {
+    public void sign(BCECPrivateKey privateKey, Map<String, Transaction> prevTxMap) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         // coinbase 交易信息不需要签名，因为它不存在交易输入信息
         if (this.isCoinbase()) {
             return;

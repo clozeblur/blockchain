@@ -14,6 +14,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -218,7 +222,7 @@ public class Blockchain {
      * @param tx         交易数据
      * @param privateKey 私钥
      */
-    public void signTransaction(Transaction tx, BCECPrivateKey privateKey) throws Exception {
+    public void signTransaction(Transaction tx, BCECPrivateKey privateKey) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException, SignatureException {
         // 先来找到这笔新的交易中，交易输入所引用的前面的多笔交易的数据
         Map<String, Transaction> prevTxMap = Maps.newHashMap();
         for (TXInput txInput : tx.getInputs()) {

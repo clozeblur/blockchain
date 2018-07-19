@@ -63,21 +63,13 @@ public class ClientStarter {
     private Map<String,Integer> nodesStatus = Maps.newConcurrentMap();
     private volatile boolean isNodesReady = false; // 节点是否已准备好
 
-    @PostConstruct
-    public void init() {
-        System.out.println("test ok!");
-        System.out.println("====================");
-    }
-
     /**
      * 从麦达区块链管理端获取已登记的各服务器ip
      * 隔5分钟去获取一次
      */
     @Scheduled(fixedRate = 300000)
     public void fetchOtherServer() {
-        String localIp =
-//                "127.0.0.1";
-                CommonUtil.getLocalIp();
+        String localIp = CommonUtil.getLocalIp();
         log.info("本机IP：{}",localIp);
         try {
             //如果连不上服务器，就不让启动

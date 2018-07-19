@@ -13,7 +13,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.tio.utils.json.Json;
 
 import javax.annotation.Resource;
 
@@ -40,6 +39,7 @@ public class BlockGenerator {
         log.info("开始生成本地block");
         Block block = (Block) addBlockEvent.getSource();
         String hash = block.getHash();
+        log.info("当前block的hash为: " + hash);
         //如果已经存在了，说明已经更新过该Block了
         if (RocksDBUtils.getInstance().getBlock(hash) != null) {
             return;
@@ -54,10 +54,12 @@ public class BlockGenerator {
 
         //如果没有上一区块，说明该块就是创世块
         if (block.getBlockHeader().getPrevBlockHash() == null) {
+            log.info("该block判断为创世块");
             RocksDBUtils.getInstance().normalPut(Constants.KEY_FIRST_BLOCK, hash);
 
             utxoSet.reIndex();
         } else {
+            log.info("保存映射 key=" + Constants.KEY_BLOCK_NEXT_PREFIX + block.getBlockHeader().getPrevBlockHash() + "  value=" + hash);
             //保存上一区块对该区块的key value映射
             RocksDBUtils.getInstance().normalPut(Constants.KEY_BLOCK_NEXT_PREFIX + block.getBlockHeader().getPrevBlockHash(), hash);
 
