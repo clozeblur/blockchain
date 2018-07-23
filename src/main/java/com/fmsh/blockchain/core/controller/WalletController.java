@@ -9,11 +9,13 @@ import com.fmsh.blockchain.biz.transaction.TXOutput;
 import com.fmsh.blockchain.biz.transaction.Transaction;
 import com.fmsh.blockchain.biz.transaction.UTXOSet;
 import com.fmsh.blockchain.biz.util.Base58Check;
+import com.fmsh.blockchain.common.CommonUtil;
 import com.fmsh.blockchain.common.exception.NotEnoughFundsException;
 import com.fmsh.blockchain.core.bean.UserData;
 import com.fmsh.blockchain.core.body.BlockRequestBody;
 import com.fmsh.blockchain.core.body.InstructionBody;
 import com.fmsh.blockchain.core.manager.BlockManager;
+import com.fmsh.blockchain.core.redis.LeaderPersist;
 import com.fmsh.blockchain.core.service.BlockService;
 import com.fmsh.blockchain.core.service.InstructionService;
 import lombok.extern.slf4j.Slf4j;
@@ -50,8 +52,25 @@ public class WalletController {
     @Resource
     private BlockManager blockManager;
 
+    @Value("${block.port}")
+    private String blockPort;
+
+    private boolean ifNotLeader() {
+        String localIp = CommonUtil.getLocalIp();
+        Integer localPort = Integer.valueOf(blockPort);
+        if (localIp == null) {
+            log.error("can not find local ip address");
+            return true;
+        }
+        return !(localIp.equals(LeaderPersist.getLeader().getMember().getIp()) && localPort.equals(LeaderPersist.getLeader().getMember().getPort()));
+    }
+
     @PostMapping("/checkBalance")
     public String checkBalance(@RequestBody Map<String, Object> map) {
+        if (ifNotLeader()) {
+            return restTemplate.postForEntity(LeaderPersist.getLeaderUrl() + "/wallet/checkBalance", map, String.class).getBody();
+        }
+
         String address = String.valueOf(map.get("address"));
         Blockchain blockchain = blockchain();
         UTXOSet utxoSet = new UTXOSet(blockchain);
@@ -72,6 +91,10 @@ public class WalletController {
     @PostMapping("/doSend")
     @ResponseBody
     public String doSend(@RequestBody Map<String, Object> map) {
+        if (ifNotLeader()) {
+            return restTemplate.postForEntity(LeaderPersist.getLeaderUrl() + "/wallet/doSend", map, String.class).getBody();
+        }
+
         String sender = String.valueOf(map.get("sender"));
         String receiver = String.valueOf(map.get("receiver"));
 
@@ -143,6 +166,10 @@ public class WalletController {
     @PostMapping("/requestCoin")
     @ResponseBody
     public String requestCoin(@RequestBody Map<String, Object> map) throws Exception {
+        if (ifNotLeader()) {
+            return restTemplate.postForEntity(LeaderPersist.getLeaderUrl() + "/wallet/requestCoin", map, String.class).getBody();
+        }
+
         String username = String.valueOf(map.get("username"));
 
         byte[] pk = Base64.decode(String.valueOf(map.get("pk")), Charset.defaultCharset());
@@ -190,6 +217,10 @@ public class WalletController {
 
     @PostMapping("/generateBlock")
     public Block generateBlock(@RequestBody Map<String, Object> map) {
+        if (ifNotLeader()) {
+            return restTemplate.postForEntity(LeaderPersist.getLeaderUrl() + "/wallet/generateBlock", map, Block.class).getBody();
+        }
+
         InstructionBody instructionBody = JSONObject.parseObject(JSONObject.toJSONString(map.get("instructionBody")), InstructionBody.class);
         Transaction transaction = JSONObject.parseObject(JSONObject.toJSONString(map.get("transaction")), Transaction.class);
 
