@@ -12,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Receiver {
 
-    @SuppressWarnings("unchecked")
     public void receiveMessage(String message) {
         try {
             Leader leader = JSONObject.parseObject(message, Leader.class);

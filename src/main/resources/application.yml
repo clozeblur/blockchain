@@ -1,8 +1,20 @@
 spring:
+  redis:
+    timeout: PT5S
+    jedis:
+      pool:
+        max-idle: 30
+        min-idle: 5
+        max-wait: PT10S
+        max-active: 8
+    host: 127.0.0.1
+    port: 6379
   jpa:
     show-sql: false
     database-platform: com.fmsh.blockchain.core.sqlite.config.SQLiteDialect
     generate-ddl: true
+
+
 #sqlite:
 #  dbName: a.db  #本地sqlite的名字
 db:
