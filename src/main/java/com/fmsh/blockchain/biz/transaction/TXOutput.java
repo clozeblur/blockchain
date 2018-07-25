@@ -30,9 +30,9 @@ public class TXOutput {
     /**
      * 创建交易输出
      *
-     * @param value
-     * @param address
-     * @return
+     * @param value value
+     * @param address address
+     * @return output
      */
     public static TXOutput newTXOutput(int value, String address) {
         // 反向转化为 byte 数组
@@ -44,8 +44,8 @@ public class TXOutput {
     /**
      * 检查交易输出是否能够使用指定的公钥
      *
-     * @param pubKeyHash
-     * @return
+     * @param pubKeyHash pk hash
+     * @return bool
      */
     public boolean isLockedWithKey(byte[] pubKeyHash) {
         return Arrays.equals(this.getPubKeyHash(), pubKeyHash);

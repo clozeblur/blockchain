@@ -32,7 +32,7 @@ public class MerkleTree {
     /**
      * 从底部叶子节点开始往上构建整个Merkle Tree
      *
-     * @param leafHashes
+     * @param leafHashes leaf hash arrays
      */
     private void constructTree(byte[][] leafHashes) {
         if (leafHashes == null || leafHashes.length < 1) {
@@ -49,8 +49,8 @@ public class MerkleTree {
     /**
      * 构建一个层级节点
      *
-     * @param children
-     * @return
+     * @param children children node list
+     * @return node list
      */
     private List<Node> internalLevel(List<Node> children) {
         List<Node> parents = Lists.newArrayListWithCapacity(children.size() / 2);
@@ -75,8 +75,8 @@ public class MerkleTree {
     /**
      * 底部节点构建
      *
-     * @param hashes
-     * @return
+     * @param hashes hash arrays
+     * @return node list
      */
     private List<Node> bottomLevel(byte[][] hashes) {
         List<Node> parents = Lists.newArrayListWithCapacity(hashes.length / 2);
@@ -102,8 +102,8 @@ public class MerkleTree {
     /**
      * 构建叶子节点
      *
-     * @param hash
-     * @return
+     * @param hash hash
+     * @return node
      */
     private static Node constructLeafNode(byte[] hash) {
         Node leaf = new Node();
@@ -114,9 +114,9 @@ public class MerkleTree {
     /**
      * 构建内部节点
      *
-     * @param leftChild
-     * @param rightChild
-     * @return
+     * @param leftChild leftChild
+     * @param rightChild rightChild
+     * @return node
      */
     private Node constructInternalNode(Node leftChild, Node rightChild) {
         Node parent = new Node();
@@ -133,9 +133,9 @@ public class MerkleTree {
     /**
      * 计算内部节点Hash
      *
-     * @param leftChildHash
-     * @param rightChildHash
-     * @return
+     * @param leftChildHash leftChildHash
+     * @param rightChildHash rightChildHash
+     * @return hash
      */
     private byte[] internalHash(byte[] leftChildHash, byte[] rightChildHash) {
         byte[] mergedBytes = ByteUtils.merge(leftChildHash, rightChildHash);

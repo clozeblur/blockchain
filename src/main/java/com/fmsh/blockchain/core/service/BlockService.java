@@ -49,7 +49,7 @@ public class BlockService {
      *         指令集
      * @return 是否合法，为null则校验通过，其他则失败并返回原因
      */
-    public String check(BlockRequestBody blockRequestBody) throws TrustSDKException {
+    public String check(BlockRequestBody blockRequestBody) {
         //TODO 此处可能需要校验publicKey的合法性
         if (blockRequestBody == null || blockRequestBody.getBlockBody() == null || StrUtil.isEmpty(blockRequestBody
                 .getPublicKey())) {

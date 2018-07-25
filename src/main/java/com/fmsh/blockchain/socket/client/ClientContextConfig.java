@@ -27,11 +27,10 @@ public class ClientContextConfig {
         ClientAioListener clientAioListener = new BlockClientAioListener();
         //断链后自动连接的，不想自动连接请设为null
         ReconnConf reconnConf = new ReconnConf(5000L, 20);
-        ClientGroupContext clientGroupContext = new ClientGroupContext(clientAioHandler, clientAioListener,
-                reconnConf);
 
         //clientGroupContext.setHeartbeatTimeout(Const.TIMEOUT);
-        return clientGroupContext;
+        return new ClientGroupContext(clientAioHandler, clientAioListener,
+                reconnConf);
     }
 
 }

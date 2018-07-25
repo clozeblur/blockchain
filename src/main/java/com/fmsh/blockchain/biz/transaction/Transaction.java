@@ -57,7 +57,7 @@ public class Transaction {
     /**
      * 计算交易信息的Hash值
      *
-     * @return
+     * @return hash
      */
     public byte[] hash() {
         // 使用序列化的方式对Transaction对象进行深度复制
@@ -72,8 +72,9 @@ public class Transaction {
      *
      * @param to   收账的钱包地址
      * @param data 解锁脚本数据
-     * @return
+     * @return tx
      */
+    @SuppressWarnings("unused")
     public static Transaction newCoinbaseTX(String to, String data) {
         return oneWayCoin(data, to, 0);
     }
@@ -101,7 +102,7 @@ public class Transaction {
     /**
      * 是否为 Coinbase 交易
      *
-     * @return
+     * @return bool
      */
     public boolean isCoinbase() {
         return this.getInputs().length == 1
@@ -116,7 +117,7 @@ public class Transaction {
      * @param to         收款钱包地址
      * @param amount     交易金额
      * @param blockchain 区块链
-     * @return
+     * @return tx
      */
     public static Transaction newUTXOTransaction(String from, String to, byte[] publicKey, BCECPrivateKey privateKey,
                                                  int amount, Blockchain blockchain)
@@ -162,9 +163,9 @@ public class Transaction {
     /**
      * 创建用于签名的交易数据副本，交易输入的 signature 和 pubKey 需要设置为null
      *
-     * @return
+     * @return tx
      */
-    public Transaction trimmedCopy() {
+    private Transaction trimmedCopy() {
         TXInput[] tmpTXInputs = new TXInput[this.getInputs().length];
         for (int i = 0; i < this.getInputs().length; i++) {
             TXInput txInput = this.getInputs()[i];
@@ -233,7 +234,7 @@ public class Transaction {
      * 验证交易信息
      *
      * @param prevTxMap 前面多笔交易集合
-     * @return
+     * @return bool
      */
     public boolean verify(Map<String, Transaction> prevTxMap) throws Exception {
         // coinbase 交易信息不需要签名，也就无需验证

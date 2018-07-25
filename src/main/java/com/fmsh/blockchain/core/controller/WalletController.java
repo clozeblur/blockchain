@@ -2,9 +2,9 @@ package com.fmsh.blockchain.core.controller;
 
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.collection.CollectionUtil;
-import com.alibaba.fastjson.JSONObject;
 import com.fmsh.blockchain.biz.block.*;
 import com.fmsh.blockchain.biz.store.RocksDBUtils;
+import com.fmsh.blockchain.biz.transaction.TXInput;
 import com.fmsh.blockchain.biz.transaction.TXOutput;
 import com.fmsh.blockchain.biz.transaction.Transaction;
 import com.fmsh.blockchain.biz.transaction.UTXOSet;
@@ -40,6 +40,9 @@ public class WalletController {
     @Value("${managerUrl}")
     private String managerUrl;
 
+    @Value("${block.port}")
+    private String blockPort;
+
     @Resource
     private RestTemplate restTemplate;
 
@@ -51,9 +54,6 @@ public class WalletController {
 
     @Resource
     private BlockManager blockManager;
-
-    @Value("${block.port}")
-    private String blockPort;
 
     private boolean ifNotLeader() {
         String localIp = CommonUtil.getLocalIp();
@@ -88,6 +88,39 @@ public class WalletController {
         return String.valueOf(balance);
     }
 
+    @PostMapping("/requestCoin")
+    @ResponseBody
+    public String requestCoin(@RequestBody Map<String, Object> map) {
+        if (ifNotLeader()) {
+            return restTemplate.postForEntity(LeaderPersist.getLeaderUrl() + "/wallet/requestCoin", map, String.class).getBody();
+        }
+
+        String username = String.valueOf(map.get("username"));
+
+        byte[] pk = Base64.decode(String.valueOf(map.get("pk")), Charset.defaultCharset());
+
+        byte[] skBytes = Base64.decode(String.valueOf(map.get("sk")), Charset.defaultCharset());
+
+        BCECPrivateKey sk = (BCECPrivateKey) bytesToSk(skBytes);
+
+        Integer amount = Integer.valueOf(String.valueOf(map.get("amount")));
+
+        String address = getAddress(username);
+
+        Blockchain blockchain = blockchain();
+        // 新交易
+        Transaction transaction = Transaction.requestedCoinTX(address, amount);
+
+        assert sk != null;
+        Block block = newBlock(transaction, "from:央行申请" + ",to:" + address, pk, sk);
+        new UTXOSet(blockchain).update(block);
+
+        RocksDBUtils.getInstance().putLastBlockHash(block.getHash());
+        RocksDBUtils.getInstance().putBlock(block);
+
+        return block.getHash();
+    }
+
     @PostMapping("/doSend")
     @ResponseBody
     public String doSend(@RequestBody Map<String, Object> map) {
@@ -112,7 +145,7 @@ public class WalletController {
             Base58Check.base58ToBytes(from);
         } catch (Exception e) {
             log.error("ERROR: sender address invalid ! address=" + from, e);
-            throw new RuntimeException("ERROR: sender address invalid ! address=" + from, e);
+            return "ERROR: sender address invalid ! address=" + from;
         }
 
         String to = getAddress(receiver);
@@ -121,15 +154,18 @@ public class WalletController {
             Base58Check.base58ToBytes(to);
         } catch (Exception e) {
             log.error("ERROR: receiver address invalid ! address=" + to, e);
-            throw new RuntimeException("ERROR: receiver address invalid ! address=" + to, e);
+            return "ERROR: receiver address invalid ! address=" + to;
         }
 
         String lastBlockHash = RocksDBUtils.getInstance().getLastBlockHash();
         Blockchain blockchain = new Blockchain(lastBlockHash);
 
-        Transaction transaction = null;
+        Transaction transaction;
         try {
             transaction = Transaction.newUTXOTransaction(from, to, pk, sk, amount, blockchain);
+            if (!blockchain.verifyTransactions(transaction)) {
+                return "invalid sign";
+            }
         } catch (NotEnoughFundsException e) {
             return e.getMsg();
         } catch (DecoderException | NoSuchAlgorithmException | SignatureException | NoSuchProviderException | InvalidKeyException e) {
@@ -163,69 +199,31 @@ public class WalletController {
         return blockManager.getFirstBlock();
     }
 
-    @PostMapping("/requestCoin")
+    @GetMapping("/createBlockchain")
     @ResponseBody
-    public String requestCoin(@RequestBody Map<String, Object> map) throws Exception {
+    public Block createBlockchain() {
         if (ifNotLeader()) {
-            return restTemplate.postForEntity(LeaderPersist.getLeaderUrl() + "/wallet/requestCoin", map, String.class).getBody();
+            return restTemplate.getForEntity(LeaderPersist.getLeaderUrl() + "/wallet/createBlockchain", Block.class).getBody();
         }
+        // 创建交易输入
+        TXInput txInput = new TXInput(new byte[]{}, -1, null, "origin".getBytes());
+        // 创建交易输出
+        TXOutput txOutput = new TXOutput(0, new byte[] {});
+        // 创建交易
+        Transaction tx = new Transaction(null, new TXInput[]{txInput},
+                new TXOutput[]{txOutput}, System.currentTimeMillis());
+        // 设置交易ID
+        tx.setTxId(tx.hash());
 
-        String username = String.valueOf(map.get("username"));
-
-        byte[] pk = Base64.decode(String.valueOf(map.get("pk")), Charset.defaultCharset());
-
-        byte[] skBytes = Base64.decode(String.valueOf(map.get("sk")), Charset.defaultCharset());
-
-        BCECPrivateKey sk = (BCECPrivateKey) bytesToSk(skBytes);
-
-        Integer amount = Integer.valueOf(String.valueOf(map.get("amount")));
-
-        String address = getAddress(username);
-
-        Blockchain blockchain = blockchain();
-        // 新交易
-        Transaction transaction = Transaction.requestedCoinTX(address, amount);
-
-        assert sk != null;
-        Block block = newBlock(transaction, "from:央行申请" + ",to:" + address, pk, sk);
-        new UTXOSet(blockchain).update(block);
-
-        RocksDBUtils.getInstance().putLastBlockHash(block.getHash());
-        RocksDBUtils.getInstance().putBlock(block);
-
-        return block.getHash();
-    }
-
-    private PrivateKey bytesToSk(byte[] bytes) {
-        try {
-            // 注册 BC Provider
-            Security.addProvider(new BouncyCastleProvider());
-            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", BouncyCastleProvider.PROVIDER_NAME);
-            PKCS8EncodedKeySpec pKCS8EncodedKeySpec =new PKCS8EncodedKeySpec(bytes);
-            return keyFactory.generatePrivate(pKCS8EncodedKeySpec);
-            //Log.d("get",filename+"　;　"+privateKey.toString() );
-        } catch (Exception e) {
-            log.error("还原密钥异常");
-            throw new RuntimeException("还原密钥异常");
-        }
-    }
-
-    private String getAddress(String username) {
-        UserData receiverData = restTemplate.getForEntity(managerUrl + "user/getUser?username=" + username, UserData.class).getBody();
-        return receiverData.getUser().getAddress();
-    }
-
-    @PostMapping("/generateBlock")
-    public Block generateBlock(@RequestBody Map<String, Object> map) {
-        if (ifNotLeader()) {
-            return restTemplate.postForEntity(LeaderPersist.getLeaderUrl() + "/wallet/generateBlock", map, Block.class).getBody();
-        }
-
-        InstructionBody instructionBody = JSONObject.parseObject(JSONObject.toJSONString(map.get("instructionBody")), InstructionBody.class);
-        Transaction transaction = JSONObject.parseObject(JSONObject.toJSONString(map.get("transaction")), Transaction.class);
+        InstructionBody instructionBody = new InstructionBody();
+        instructionBody.setOperation(Operation.ADD);
+        instructionBody.setTable("message");
+        instructionBody.setJson("{\"content\":\"" + "创世区块" + "\"}");
+        instructionBody.setPublicKey(null);
+        instructionBody.setPrivateKey(null);
 
         Instruction instruction = instructionService.build(instructionBody);
-        instruction.setTransaction(transaction);
+        instruction.setTransaction(tx);
 
         BlockRequestBody blockRequestBody = new BlockRequestBody();
         blockRequestBody.setPublicKey(instructionBody.getPublicKey());
@@ -235,6 +233,24 @@ public class WalletController {
         blockRequestBody.setBlockBody(blockBody);
 
         return blockService.addBlock(blockRequestBody);
+    }
+
+    private PrivateKey bytesToSk(byte[] bytes) {
+        try {
+            // 注册 BC Provider
+            Security.addProvider(new BouncyCastleProvider());
+            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", BouncyCastleProvider.PROVIDER_NAME);
+            PKCS8EncodedKeySpec pKCS8EncodedKeySpec =new PKCS8EncodedKeySpec(bytes);
+            return keyFactory.generatePrivate(pKCS8EncodedKeySpec);
+        } catch (Exception e) {
+            log.error("还原密钥异常");
+            throw new RuntimeException("还原密钥异常");
+        }
+    }
+
+    private String getAddress(String username) {
+        UserData receiverData = restTemplate.getForEntity(managerUrl + "user/getUser?username=" + username, UserData.class).getBody();
+        return receiverData.getUser().getAddress();
     }
 
     private Blockchain blockchain() {

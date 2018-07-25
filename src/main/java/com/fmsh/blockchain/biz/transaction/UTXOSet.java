@@ -70,7 +70,7 @@ public class UTXOSet {
      * 查找钱包地址对应的所有UTXO
      *
      * @param pubKeyHash 钱包公钥Hash
-     * @return
+     * @return outputs
      */
     public TXOutput[] findUTXOs(byte[] pubKeyHash) {
         TXOutput[] utxos = {};

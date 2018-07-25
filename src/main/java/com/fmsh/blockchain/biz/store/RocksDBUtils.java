@@ -111,6 +111,7 @@ public class RocksDBUtils {
     /**
      * 初始化 blocks 数据桶
      */
+    @SuppressWarnings("unchecked")
     private void initBlockBucket() {
         try {
             byte[] blockBucketKey = SerializeUtils.serialize(BLOCKS_BUCKET_KEY);
@@ -150,7 +151,7 @@ public class RocksDBUtils {
     /**
      * 保存最新一个区块的Hash值
      *
-     * @param tipBlockHash
+     * @param tipBlockHash tipBlockHash
      */
     public void putLastBlockHash(String tipBlockHash) {
         try {
@@ -170,7 +171,7 @@ public class RocksDBUtils {
     /**
      * 查询最新一个区块的Hash值
      *
-     * @return
+     * @return last block hash
      */
     public String getLastBlockHash() {
         byte[] lastBlockHashBytes = normalBucket.get(Constants.KEY_LAST_BLOCK);
@@ -211,7 +212,7 @@ public class RocksDBUtils {
     /**
      * 保存区块
      *
-     * @param block
+     * @param block block
      */
     public void putBlock(Block block) {
         try {
@@ -226,8 +227,8 @@ public class RocksDBUtils {
     /**
      * 查询区块
      *
-     * @param blockHash
-     * @return
+     * @param blockHash block hash
+     * @return block
      */
     public Block getBlock(String blockHash) {
         byte[] blockBytes = blocksBucket.get(blockHash);
@@ -300,6 +301,7 @@ public class RocksDBUtils {
     /**
      * 关闭数据库
      */
+    @SuppressWarnings("unused")
     public void closeDB() {
         try {
             db.close();

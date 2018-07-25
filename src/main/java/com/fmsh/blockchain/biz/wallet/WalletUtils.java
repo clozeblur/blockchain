@@ -75,8 +75,9 @@ public class WalletUtils {
     /**
      * 获取所有的钱包地址
      *
-     * @return
+     * @return addresses
      */
+    @SuppressWarnings("unused")
     public Set<String> getAddresses() {
         Wallets wallets = this.loadFromDisk();
         return wallets.getAddresses();
@@ -86,8 +87,9 @@ public class WalletUtils {
      * 获取钱包数据
      *
      * @param address 钱包地址
-     * @return
+     * @return wallet
      */
+    @SuppressWarnings("unused")
     public Wallet getWallet(String address) {
         Wallets wallets = this.loadFromDisk();
         return wallets.getWallet(address);
@@ -96,8 +98,9 @@ public class WalletUtils {
     /**
      * 创建钱包
      *
-     * @return
+     * @return wallet
      */
+    @SuppressWarnings("unused")
     public Wallet createWallet() {
         Wallet wallet = new Wallet();
         Wallets wallets = this.loadFromDisk();
@@ -165,7 +168,7 @@ public class WalletUtils {
         /**
          * 添加钱包
          *
-         * @param wallet
+         * @param wallet wallet
          */
         private void addWallet(Wallet wallet) {
             try {
@@ -179,7 +182,7 @@ public class WalletUtils {
         /**
          * 获取所有的钱包地址
          *
-         * @return
+         * @return addresses
          */
         Set<String> getAddresses() {
             if (walletMap == null) {
@@ -193,7 +196,7 @@ public class WalletUtils {
          * 获取钱包数据
          *
          * @param address 钱包地址
-         * @return
+         * @return wallet
          */
         Wallet getWallet(String address) {
             // 检查钱包地址是否合法

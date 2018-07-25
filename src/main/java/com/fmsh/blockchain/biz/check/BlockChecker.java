@@ -91,7 +91,7 @@ public class BlockChecker {
      * @return block
      */
     public int checkSign(Block block) {
-        if(!checkBlockHashSign(block)) {
+        if(!checkBlockHashSignNotPass(block)) {
             return -1;
         }
         return 0;
@@ -99,11 +99,12 @@ public class BlockChecker {
 
     /**
      * 校验block，包括签名、hash、关联关系
-     * @param block
-     * @return
+     *
+     * @param block block
+     * @return block.hash
      */
     public String checkBlock(Block block) {
-        if(!checkBlockHashSign(block)) return block.getHash();
+        if(!checkBlockHashSignNotPass(block)) return block.getHash();
 
         String preHash = block.getBlockHeader().getPrevBlockHash();
         if(preHash == null) return null;
@@ -126,22 +127,17 @@ public class BlockChecker {
 
     /**
      * 检测区块签名及hash是否符合
-     * @param block
-     * @return
+     *
+     * @param block block
+     * @return bool
      */
-    private boolean checkBlockHashSign(Block block) {
+    private boolean checkBlockHashSignNotPass(Block block) {
         BlockRequestBody blockRequestBody = new BlockRequestBody();
         blockRequestBody.setBlockBody(block.getBlockBody());
         blockRequestBody.setPublicKey(block.getBlockHeader().getPublicKey());
-        try {
-            if(blockService.check(blockRequestBody) != null) return false;
-        } catch (TrustSDKException e) {
-            return false;
-        }
+        if(blockService.check(blockRequestBody) != null) return true;
 
         String hash = Sha256.sha256(block.getBlockHeader().toString() + block.getBlockBody().toString());
-        if(!StrUtil.equals(block.getHash(),hash)) return false;
-
-        return true;
+        return !StrUtil.equals(block.getHash(), hash);
     }
 }

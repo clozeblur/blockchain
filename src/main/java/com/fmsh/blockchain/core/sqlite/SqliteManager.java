@@ -103,6 +103,7 @@ public class SqliteManager {
      * @param block
      *         block
      */
+    @SuppressWarnings("unused")
     public void rollBack(Block block) {
         List<Instruction> instructions = block.getBlockBody().getInstructions();
         int size = instructions.size();
@@ -123,7 +124,7 @@ public class SqliteManager {
     /**
      * 测试block的代码是否能正确执行
      * 
-     * @param block
+     * @param block block
      * @throws Exception msg=00001 则说明是正常执行
      */
     @Transactional(rollbackFor = Exception.class)

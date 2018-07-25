@@ -38,9 +38,10 @@ public class TXInput {
     /**
      * 检查公钥hash是否用于交易输入
      *
-     * @param pubKeyHash
-     * @return
+     * @param pubKeyHash pk hash
+     * @return bool
      */
+    @SuppressWarnings("unused")
     public boolean usesKey(byte[] pubKeyHash) {
         byte[] lockingHash = BtcAddressUtils.ripeMD160Hash(this.getPubKey());
         return Arrays.equals(lockingHash, pubKeyHash);

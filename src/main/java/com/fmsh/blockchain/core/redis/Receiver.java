@@ -14,8 +14,10 @@ public class Receiver {
 
     public void receiveMessage(String message) {
         try {
+            log.info("received message: {}", message);
             Leader leader = JSONObject.parseObject(message, Leader.class);
             if (leader != null) {
+                log.info("current leader is : {}", leader.getMember());
                 LeaderPersist.setLeader(leader);
             }
         } catch (Exception e) {

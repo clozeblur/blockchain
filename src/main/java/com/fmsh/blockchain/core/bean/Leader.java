@@ -13,8 +13,6 @@ public class Leader implements Serializable {
 
     private static final long serialVersionUID = -3894764726332439527L;
 
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
     private Member member;
 
     private Long timestamp;
@@ -27,8 +25,8 @@ public class Leader implements Serializable {
         this.member = member;
     }
 
-    public String getTimestamp() {
-        return sdf.format(new Date(timestamp));
+    public Long getTimestamp() {
+        return this.timestamp;
     }
 
     public void setTimestamp(Long timestamp) {

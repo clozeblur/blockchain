@@ -59,7 +59,7 @@ public class BlockController {
      * @return 结果
      */
     @PostMapping
-    public BaseData add(@RequestBody BlockRequestBody blockRequestBody) throws TrustSDKException {
+    public BaseData add(@RequestBody BlockRequestBody blockRequestBody) {
     	String msg = blockService.check(blockRequestBody);
         if (msg != null) {
             return ResultGenerator.genFailResult(msg);
@@ -73,7 +73,7 @@ public class BlockController {
      * sql内容
      */
     @GetMapping("/test")
-    public BaseData test(String content) throws Exception {
+    public BaseData test(String content) {
         InstructionBody instructionBody = new InstructionBody();
         instructionBody.setOperation(Operation.ADD);
         instructionBody.setTable("message");
@@ -99,7 +99,7 @@ public class BlockController {
      * sql内容
      */
     @GetMapping("testUpdate")
-    public BaseData testUpdate(String id,String content) throws Exception {
+    public BaseData testUpdate(String id,String content) {
     	if(StringUtils.isBlank(id)) ResultGenerator.genSuccessResult("主键不可为空");
     	InstructionBody instructionBody = new InstructionBody();
     	instructionBody.setOperation(Operation.UPDATE);
@@ -126,7 +126,7 @@ public class BlockController {
      * sql内容
      */
     @GetMapping("testDel")
-    public BaseData testDel(String id) throws Exception {
+    public BaseData testDel(String id) {
     	if(StringUtils.isBlank(id)) ResultGenerator.genSuccessResult("主键不可为空");
     	InstructionBody instructionBody = new InstructionBody();
     	instructionBody.setOperation(Operation.DELETE);

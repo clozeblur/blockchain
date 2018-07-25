@@ -73,8 +73,8 @@ public class Wallet implements Serializable {
     /**
      * 创建新的密钥对
      *
-     * @return
-     * @throws Exception
+     * @return keyPair
+     * @throws Exception e
      */
     private KeyPair newECKeyPair() throws Exception {
         // 注册 BC Provider
@@ -92,7 +92,7 @@ public class Wallet implements Serializable {
     /**
      * 获取钱包地址
      *
-     * @return
+     * @return address
      */
     public String getAddress() {
         try {

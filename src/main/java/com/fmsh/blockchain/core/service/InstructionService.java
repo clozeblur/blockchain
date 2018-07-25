@@ -98,11 +98,13 @@ public class InstructionService {
         return instructionReverse;
     }
 
+    @SuppressWarnings("unused")
     public boolean checkSign(Instruction instruction) throws TrustSDKException {
         String buildStr = getSignString(instruction);
         return TrustSDK.verifyString(instruction.getPublicKey(), buildStr, instruction.getSign());
     }
 
+    @SuppressWarnings("unused")
     public boolean checkHash(Instruction instruction) {
         String buildStr = getSignString(instruction);
         return Sha256.sha256(buildStr).equals(instruction.getHash());

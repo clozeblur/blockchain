@@ -40,25 +40,15 @@ public class Blockchain {
     /**
      * 从 DB 中恢复区块链数据
      *
-     * @return
+     * @return blockchain
      */
+    @SuppressWarnings("unused")
     public static Blockchain initBlockchainFromDB() {
         String lastBlockHash = RocksDBUtils.getInstance().getLastBlockHash();
         if (lastBlockHash == null) {
             throw new RuntimeException("ERROR: Fail to init blockchain from db. ");
         }
         return new Blockchain(lastBlockHash);
-    }
-
-    /**
-     * <p> 添加区块  </p>
-     *
-     * @param block
-     */
-    private void addBlock(Block block) {
-        RocksDBUtils.getInstance().putLastBlockHash(block.getHash());
-        RocksDBUtils.getInstance().putBlock(block);
-        this.lastBlockHash = block.getHash();
     }
 
     /**
@@ -75,9 +65,9 @@ public class Blockchain {
         /**
          * 是否有下一个区块
          *
-         * @return
+         * @return if exist next hash
          */
-        public boolean hashNext() {
+        boolean hashNext() {
             if (StringUtils.isBlank(currentBlockHash)) {
                 return false;
             }
@@ -86,19 +76,16 @@ public class Blockchain {
                 return false;
             }
             // 创世区块直接放行
-            if (StringUtils.isBlank(lastBlock.getBlockHeader().getPrevBlockHash())) {
-                return true;
-            }
-            return RocksDBUtils.getInstance().getBlock(lastBlock.getBlockHeader().getPrevBlockHash()) != null;
+            return StringUtils.isBlank(lastBlock.getBlockHeader().getPrevBlockHash()) || RocksDBUtils.getInstance().getBlock(lastBlock.getBlockHeader().getPrevBlockHash()) != null;
         }
 
 
         /**
          * 返回区块
          *
-         * @return
+         * @return next block
          */
-        public Block next() {
+        Block next() {
             Block currentBlock = RocksDBUtils.getInstance().getBlock(currentBlockHash);
             if (currentBlock != null) {
                 this.currentBlockHash = currentBlock.getBlockHeader().getPrevBlockHash();
@@ -111,16 +98,16 @@ public class Blockchain {
     /**
      * 获取区块链迭代器
      *
-     * @return
+     * @return iterator
      */
-    public BlockchainIterator getBlockchainIterator() {
+    private BlockchainIterator getBlockchainIterator() {
         return new BlockchainIterator(lastBlockHash);
     }
 
     /**
      * 查找所有的 unspent transaction outputs
      *
-     * @return
+     * @return map
      */
     public Map<String, TXOutput[]> findAllUTXOs() {
         Map<String, int[]> allSpentTXOs = this.getAllSpentTXOs();
@@ -196,7 +183,7 @@ public class Blockchain {
      * 依据交易ID查询交易信息
      *
      * @param txId 交易ID
-     * @return
+     * @return tx
      */
     private Transaction findTransaction(byte[] txId) {
         for (BlockchainIterator iterator = this.getBlockchainIterator(); iterator.hashNext(); ) {
@@ -235,9 +222,10 @@ public class Blockchain {
     /**
      * 交易签名验证
      *
-     * @param tx
+     * @param tx tx
      */
-    private boolean verifyTransactions(Transaction tx) {
+    @SuppressWarnings("unused")
+    public boolean verifyTransactions(Transaction tx) {
         if (tx.isCoinbase()) {
             return true;
         }

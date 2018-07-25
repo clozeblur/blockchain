@@ -40,18 +40,6 @@ public class ModelMetaData {
             }
             map.put(tableName, Class.forName(key));
         }
-//        Map<String, ClassMetadata> metaMap = sessionFactory.getAllClassMetadata();
-//        Map<String, Class> map = new HashMap<>(metaMap.size());
-//        for (String key : metaMap.keySet()) {
-//            AbstractEntityPersister classMetadata = (AbstractEntityPersister) metaMap
-//                    .get(key);
-//            String tableName = classMetadata.getTableName().toLowerCase();
-//            int index = tableName.indexOf(".");
-//            if (index >= 0) {
-//                tableName = tableName.substring(index + 1);
-//            }
-//            map.put(tableName, Class.forName(key));
-//        }
         return map;
     }
 
