@@ -88,7 +88,7 @@ public class Transaction {
             data = String.format("Reward to '%s'", to);
         }
         // 创建交易输入
-        TXInput txInput = new TXInput(new byte[]{}, -1, null, data.getBytes());
+        TXInput txInput = new TXInput(new byte[]{}, -1, null, null);
         // 创建交易输出
         TXOutput txOutput = TXOutput.newTXOutput(amount, to);
         // 创建交易

@@ -22,6 +22,14 @@ public class LeaderPersist {
     }
 
     public static String getLeaderUrl() {
-        return "http://" + leader.getMember().getIp() + ":" + leader.getMember().getPort();
+        return "http://" + leader.getMember().getIp() + ":" + serverPort(leader.getMember().getPort());
+    }
+
+    // default 8084
+    private static Integer serverPort(Integer port) {
+        if (port == 11000) return 8081;
+        if (port == 12000) return 8082;
+        if (port == 13000) return 8083;
+        else return 8084;
     }
 }

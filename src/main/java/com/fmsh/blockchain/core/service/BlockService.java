@@ -17,6 +17,7 @@ import com.fmsh.blockchain.socket.client.PacketSender;
 import com.fmsh.blockchain.socket.packet.BlockPacket;
 import com.fmsh.blockchain.socket.packet.PacketBuilder;
 import com.fmsh.blockchain.socket.packet.PacketType;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
  * @Description:
  */
 @Service
+@Slf4j
 public class BlockService {
 
     @Resource
@@ -51,6 +53,10 @@ public class BlockService {
      */
     public String check(BlockRequestBody blockRequestBody) {
         //TODO 此处可能需要校验publicKey的合法性
+        if (blockRequestBody != null) {
+            log.info(blockRequestBody.toString());
+        }
+
         if (blockRequestBody == null || blockRequestBody.getBlockBody() == null || StrUtil.isEmpty(blockRequestBody
                 .getPublicKey())) {
             return "请求参数缺失";
@@ -61,6 +67,10 @@ public class BlockService {
         }
 
         for (Instruction instruction : instructions) {
+            log.info("================");
+            log.info("================");
+            log.info("blockRequestBody.getPublicKey()=" + blockRequestBody.getPublicKey());
+            log.info("instruction.getPublicKey())=" + instruction.getPublicKey());
             if (!StrUtil.equals(blockRequestBody.getPublicKey(), instruction.getPublicKey())) {
                 return "指令内公钥和传来的公钥不匹配";
             }
@@ -100,6 +110,10 @@ public class BlockService {
         block.setBlockBody(blockBody);
         block.setBlockHeader(blockHeader);
         block.setHash(Sha256.sha256(blockHeader.toString() + blockBody.toString()));
+
+        log.info("==============================================================================================");
+        log.info("当前新生成的block.hash为： " + block.getHash());
+        log.info("==============================================================================================");
 
         BlockPacket blockPacket = new PacketBuilder<>().setType(PacketType.GENERATE_BLOCK_REQUEST).setBody(new
                 RpcBlockBody(block)).build();

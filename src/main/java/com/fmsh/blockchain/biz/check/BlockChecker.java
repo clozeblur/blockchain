@@ -7,6 +7,7 @@ import com.fmsh.blockchain.common.exception.TrustSDKException;
 import com.fmsh.blockchain.core.body.BlockRequestBody;
 import com.fmsh.blockchain.core.manager.BlockManager;
 import com.fmsh.blockchain.core.service.BlockService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -91,7 +92,11 @@ public class BlockChecker {
      * @return block
      */
     public int checkSign(Block block) {
-        if(!checkBlockHashSignNotPass(block)) {
+        if (block.getBlockHeader().getNumber() == 1 && StringUtils.isBlank(block.getBlockHeader().getPrevBlockHash())) {
+            // 如果是创始区块，则直接通过
+            return 0;
+        }
+        if(checkBlockHashSignNotPass(block)) {
             return -1;
         }
         return 0;
@@ -104,7 +109,7 @@ public class BlockChecker {
      * @return block.hash
      */
     public String checkBlock(Block block) {
-        if(!checkBlockHashSignNotPass(block)) return block.getHash();
+        if(checkBlockHashSignNotPass(block)) return block.getHash();
 
         String preHash = block.getBlockHeader().getPrevBlockHash();
         if(preHash == null) return null;

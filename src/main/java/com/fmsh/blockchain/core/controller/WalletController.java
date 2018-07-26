@@ -20,6 +20,7 @@ import com.fmsh.blockchain.core.service.BlockService;
 import com.fmsh.blockchain.core.service.InstructionService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -111,7 +112,9 @@ public class WalletController {
         // 新交易
         Transaction transaction = Transaction.requestedCoinTX(address, amount);
 
-        assert sk != null;
+        if (sk == null) {
+            return "私钥解析异常";
+        }
         Block block = newBlock(transaction, "from:央行申请" + ",to:" + address, pk, sk);
         new UTXOSet(blockchain).update(block);
 
@@ -205,10 +208,15 @@ public class WalletController {
         if (ifNotLeader()) {
             return restTemplate.getForEntity(LeaderPersist.getLeaderUrl() + "/wallet/createBlockchain", Block.class).getBody();
         }
+        String firstBlockHash = blockManager.getFirstBlockHash();
+        if (!StringUtils.isBlank(firstBlockHash)) {
+            throw new RuntimeException("区块链无法再次创造");
+        }
+
         // 创建交易输入
-        TXInput txInput = new TXInput(new byte[]{}, -1, null, "origin".getBytes());
+        TXInput txInput = new TXInput(new byte[]{}, -1, null, null);
         // 创建交易输出
-        TXOutput txOutput = new TXOutput(0, new byte[] {});
+        TXOutput txOutput = new TXOutput(0, null);
         // 创建交易
         Transaction tx = new Transaction(null, new TXInput[]{txInput},
                 new TXOutput[]{txOutput}, System.currentTimeMillis());

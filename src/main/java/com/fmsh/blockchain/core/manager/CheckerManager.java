@@ -35,7 +35,7 @@ public class CheckerManager {
         }
         int time = blockChecker.checkTime(block);
         if (time != 0) {
-            return new RpcCheckBlockBody(-4, "block的时间错误");
+            return new RpcCheckBlockBody(-4, "block的时间 错误");
         }
         int hash = blockChecker.checkHash(block);
         if (hash != 0) {
