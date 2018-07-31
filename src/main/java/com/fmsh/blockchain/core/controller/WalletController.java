@@ -2,6 +2,7 @@ package com.fmsh.blockchain.core.controller;
 
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.collection.CollectionUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.fmsh.blockchain.biz.block.*;
 import com.fmsh.blockchain.biz.store.RocksDBUtils;
 import com.fmsh.blockchain.biz.transaction.TXInput;
@@ -24,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -108,6 +110,14 @@ public class WalletController {
 
         String address = getAddress(username);
 
+        // 检查钱包地址是否合法
+        try {
+            Base58Check.base58ToBytes(address);
+        } catch (Exception e) {
+            log.error("ERROR: user address invalid ! address=" + address, e);
+            return "ERROR: user address invalid ! address=" + address;
+        }
+
         Blockchain blockchain = blockchain();
         // 新交易
         Transaction transaction = Transaction.requestedCoinTX(address, amount);
@@ -177,6 +187,29 @@ public class WalletController {
 
         Block block = newBlock(transaction, "from:" + from + "|sender:" + sender + "发送了" + amount + "到 to:" + to + "|receiver:" + receiver, pk, sk);
         return block.getHash();
+    }
+
+    @PostMapping("/queryRelatedBlocks")
+    @ResponseBody
+    public String queryRelatedBlocks(@RequestBody Map<String, Object> map) {
+        String username = String.valueOf(map.get("username"));
+        String address = getAddress(username);
+        // 检查钱包地址是否合法
+        try {
+            Base58Check.base58ToBytes(address);
+        } catch (Exception e) {
+            log.error("ERROR: user address invalid ! address=" + address, e);
+            return "ERROR: user address invalid ! address=" + address;
+        }
+
+        byte[] pk = Base64.decode(String.valueOf(map.get("pk")), Charset.defaultCharset());
+        String lastBlockHash = RocksDBUtils.getInstance().getLastBlockHash();
+        Blockchain blockchain = new Blockchain(lastBlockHash);
+
+        List<Block> blocks = blockchain.findBlocks(pk, address);
+        if (CollectionUtils.isEmpty(blocks)) return "EMPTY BLOCKS";
+
+        return JSONObject.toJSONString(blocks);
     }
 
     @GetMapping("/getLastBlockHash")

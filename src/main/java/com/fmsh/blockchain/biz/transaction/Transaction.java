@@ -130,7 +130,6 @@ public class Transaction {
 
         if (accumulated < amount) {
             log.error("ERROR: Not enough funds ! accumulated=" + accumulated + ", amount=" + amount);
-//            throw new RuntimeException("ERROR: Not enough funds ! ");
             throw new NotEnoughFundsException("ERROR: Not enough funds ! accumulated=" + accumulated + ", amount=" + amount);
         }
         Iterator<Map.Entry<String, int[]>> iterator = unspentOuts.entrySet().iterator();
@@ -223,6 +222,11 @@ public class Transaction {
             ecdsaSign.update(txCopy.getTxId());
             byte[] signature = ecdsaSign.sign();
 
+            log.info("======================================================================");
+            log.info("======================================================================");
+            log.info(new String(signature));
+            log.info("======================================================================");
+            log.info("======================================================================");
             // 将整个交易数据的签名赋值给交易输入，因为交易输入需要包含整个交易信息的签名
             // 注意是将得到的签名赋值给原交易信息中的交易输入
             this.getInputs()[i].setSignature(signature);

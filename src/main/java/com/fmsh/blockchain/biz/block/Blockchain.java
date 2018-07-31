@@ -1,5 +1,7 @@
 package com.fmsh.blockchain.biz.block;
 
+import cn.hutool.core.codec.Base64;
+import cn.hutool.core.util.StrUtil;
 import com.fmsh.blockchain.biz.store.RocksDBUtils;
 import com.fmsh.blockchain.biz.transaction.TXInput;
 import com.fmsh.blockchain.biz.transaction.TXOutput;
@@ -179,48 +181,55 @@ public class Blockchain {
         return spentTXOs;
     }
 
-//    private List<Block> findBlockByAddress(byte[] publicKey, String address) {
-//        byte[] versionedPayload = Base58Check.base58ToBytes(address);
-//        byte[] pubKeyHash = Arrays.copyOfRange(versionedPayload, 1, versionedPayload.length);
-//        List<Block> blocks = new ArrayList<>();
-//        for (BlockchainIterator blockchainIterator = this.getBlockchainIterator(); blockchainIterator.hashNext(); ) {
-//            Block block = blockchainIterator.next();
-//            boolean isRelated = false;
-//
-//            List<Transaction> transactions = new ArrayList<>();
-//            for (Instruction instruction : block.getBlockBody().getInstructions()) {
-//                transactions.add(instruction.getTransaction());
-//            }
-//
-//            for (Transaction transaction : transactions) {
-//                // 如果是 coinbase 交易，直接跳过，因为它不存在引用前一个区块的交易输出
-//                if (transaction.isCoinbase()) {
-//                    continue;
-//                }
-//
-//                for (TXInput txInput : transaction.getInputs()) {
-//                    if (Arrays.equals(txInput.getPubKey(), publicKey)) {
-//                        isRelated = true;
-//                        break;
-//                    }
-//                }
-//                if (!isRelated) {
-//                    for (TXOutput txOutput : transaction.getOutputs()) {
-//                        if (Arrays.equals(txOutput.getPubKeyHash(), pubKeyHash)) {
-//                            isRelated = true;
-//                            break;
-//                        }
-//                    }
-//                }
-//                if (isRelated) break;
-//            }
-//
-//            if (isRelated) {
-//                blocks.add(block);
-//            }
-//        }
-//            return blocks;
-//    }
+    public List<Block> findBlocks(byte[] publicKey, String address) {
+        byte[] versionedPayload = Base58Check.base58ToBytes(address);
+        byte[] pubKeyHash = Arrays.copyOfRange(versionedPayload, 1, versionedPayload.length);
+        List<Block> blocks = new ArrayList<>();
+        for (BlockchainIterator blockchainIterator = this.getBlockchainIterator(); blockchainIterator.hashNext(); ) {
+            Block block = blockchainIterator.next();
+            boolean isRelated = false;
+            if (StrUtil.equals(block.getBlockHeader().getPublicKey(), Base64.encode(publicKey))) {
+                isRelated = true;
+            }
+            if (isRelated) {
+                blocks.add(block);
+                continue;
+            }
+
+            List<Transaction> transactions = new ArrayList<>();
+            for (Instruction instruction : block.getBlockBody().getInstructions()) {
+                transactions.add(instruction.getTransaction());
+            }
+
+            for (Transaction transaction : transactions) {
+                // 如果是 coinbase 交易，直接跳过，因为它不存在引用前一个区块的交易输出
+                if (transaction.isCoinbase()) {
+                    continue;
+                }
+
+                for (TXInput txInput : transaction.getInputs()) {
+                    if (Arrays.equals(txInput.getPubKey(), publicKey)) {
+                        isRelated = true;
+                        break;
+                    }
+                }
+                if (!isRelated) {
+                    for (TXOutput txOutput : transaction.getOutputs()) {
+                        if (Arrays.equals(txOutput.getPubKeyHash(), pubKeyHash)) {
+                            isRelated = true;
+                            break;
+                        }
+                    }
+                }
+                if (isRelated) break;
+            }
+
+            if (isRelated) {
+                blocks.add(block);
+            }
+        }
+            return blocks;
+    }
 
 
     /**
