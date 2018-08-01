@@ -212,6 +212,13 @@ public class WalletController {
         return JSONObject.toJSONString(blocks);
     }
 
+    @GetMapping("/queryAllBlocks")
+    public String queryAllBlocks() {
+        String lastBlockHash = RocksDBUtils.getInstance().getLastBlockHash();
+        Blockchain blockchain = new Blockchain(lastBlockHash);
+        return JSONObject.toJSONString(blockchain.findAll());
+    }
+
     @GetMapping("/getLastBlockHash")
     @ResponseBody
     public String getLastBlockHash() {

@@ -181,6 +181,15 @@ public class Blockchain {
         return spentTXOs;
     }
 
+    public List<Block> findAll() {
+        List<Block> blocks = new ArrayList<>();
+        for (BlockchainIterator blockchainIterator = this.getBlockchainIterator(); blockchainIterator.hashNext(); ) {
+            Block block = blockchainIterator.next();
+            blocks.add(block);
+        }
+        return blocks;
+    }
+
     public List<Block> findBlocks(byte[] publicKey, String address) {
         byte[] versionedPayload = Base58Check.base58ToBytes(address);
         byte[] pubKeyHash = Arrays.copyOfRange(versionedPayload, 1, versionedPayload.length);
