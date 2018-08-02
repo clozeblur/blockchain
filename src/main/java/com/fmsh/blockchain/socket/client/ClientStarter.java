@@ -72,12 +72,18 @@ public class ClientStarter {
         String localIp = CommonUtil.getLocalIp();
         log.info("本机IP：{}",localIp);
         try {
-            //如果连不上服务器，就不让启动
-            MemberData memberData = restTemplate.getForEntity(managerUrl + "member/memberData?name=" + name + "&appId=" + AppId
-                            .value +
-                            "&ip=" +
-                            localIp,
-                    MemberData.class).getBody();
+            MemberData memberData = null;
+            try {
+                //如果连不上服务器，就不让启动
+                memberData = restTemplate.getForEntity(managerUrl + "member/memberData?name=" + name + "&appId=" + AppId
+                                .value +
+                                "&ip=" +
+                                localIp,
+                        MemberData.class).getBody();
+            } catch (Exception e) {
+                log.error("连接不上manager节点");
+            }
+            if (memberData == null) return;
             //合法的客户端
             if (memberData.getCode() == 0) {
                 List<Member> memberList = memberData.getMembers();
@@ -88,9 +94,12 @@ public class ClientStarter {
                     Node node = new Node(member.getIp(), member.getPort());
                     nodes.add(node);
                 }
-                //开始尝试绑定到对方开启的server
-                bindServerGroup(nodes);
-
+                try {
+                    //开始尝试绑定到对方开启的server
+                    bindServerGroup(nodes);
+                } catch (Exception e) {
+                    log.error("绑定节点异常: {}", e);
+                }
             } else {
                 log.error("不是合法有效的已注册的客户端");
                 System.exit(0);

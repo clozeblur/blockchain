@@ -62,13 +62,13 @@ public class BlockGenerator {
             log.info("保存映射 key=" + Constants.KEY_BLOCK_NEXT_PREFIX + block.getBlockHeader().getPrevBlockHash() + "  value=" + hash);
             //保存上一区块对该区块的key value映射
             RocksDBUtils.getInstance().normalPut(Constants.KEY_BLOCK_NEXT_PREFIX + block.getBlockHeader().getPrevBlockHash(), hash);
-
-            utxoSet.update(block);
         }
         //存入rocksDB
         RocksDBUtils.getInstance().putBlock(block);
         //设置最后一个block的key value
         RocksDBUtils.getInstance().normalPut(Constants.KEY_LAST_BLOCK, hash);
+
+        utxoSet.update(block);
 
         log.info("本地已生成新的Block");
 
