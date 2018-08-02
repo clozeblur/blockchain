@@ -117,8 +117,6 @@ public class WalletController {
             log.error("ERROR: user address invalid ! address=" + address, e);
             return "ERROR: user address invalid ! address=" + address;
         }
-
-        Blockchain blockchain = blockchain();
         // 新交易
         Transaction transaction = Transaction.requestedCoinTX(address, amount);
 
@@ -126,11 +124,6 @@ public class WalletController {
             return "私钥解析异常";
         }
         Block block = newBlock(transaction, "from:央行申请" + ",to:" + address, pk, sk);
-        new UTXOSet(blockchain).update(block);
-
-        RocksDBUtils.getInstance().putLastBlockHash(block.getHash());
-        RocksDBUtils.getInstance().putBlock(block);
-
         return block.getHash();
     }
 
