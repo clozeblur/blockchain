@@ -202,14 +202,14 @@ public class WalletController {
         List<Block> blocks = blockchain.findBlocks(pk, address);
         if (CollectionUtils.isEmpty(blocks)) return "EMPTY BLOCKS";
 
-        return JSONObject.toJSONString(blocks);
+        return JSONObject.toJSONString(blockListToShortList(blocks));
     }
 
     @GetMapping("/queryAllBlocks")
     public String queryAllBlocks() {
         String lastBlockHash = RocksDBUtils.getInstance().getLastBlockHash();
         Blockchain blockchain = new Blockchain(lastBlockHash);
-        return JSONObject.toJSONString(blockchain.findAll());
+        return JSONObject.toJSONString(blockListToShortList(blockchain.findAll()));
     }
 
     @GetMapping("/getLastBlockHash")
@@ -317,5 +317,24 @@ public class WalletController {
         blockRequestBody.setBlockBody(blockBody);
 
         return blockService.addBlock(blockRequestBody);
+    }
+
+    private List<BlockShortView> blockListToShortList(List<Block> blocks) {
+        List<BlockShortView> blockShortViews = new ArrayList<>();
+        for (Block block : blocks) {
+            BlockShortView shortView = new BlockShortView();
+            shortView.setHash(block.getHash());
+            shortView.setNumber(block.getBlockHeader().getNumber());
+            shortView.setPublicKey(block.getBlockHeader().getPublicKey());
+            shortView.setTimestamp(block.getBlockHeader().getTimestamp());
+            List<Instruction> instructions = block.getBlockBody().getInstructions();
+            if (!CollectionUtils.isEmpty(instructions)) {
+                shortView.setJson(instructions.get(0).getJson());
+                shortView.setInputs(instructions.get(0).getTransaction().getInputs());
+                shortView.setOutputs(instructions.get(0).getTransaction().getOutputs());
+            }
+            blockShortViews.add(shortView);
+        }
+        return blockShortViews;
     }
 }
