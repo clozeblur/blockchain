@@ -36,9 +36,9 @@ public class UTXOSet {
      * @param pubKeyHash 钱包公钥Hash
      * @param amount     花费金额
      */
-    public SpendableOutputResult findSpendableOutputs(byte[] pubKeyHash, int amount) {
+    public SpendableOutputResult findSpendableOutputs(byte[] pubKeyHash, long amount) {
         Map<String, int[]> unspentOuts = Maps.newHashMap();
-        int accumulated = 0;
+        long accumulated = 0;
         Map<String, byte[]> chainstateBucket = RocksDBUtils.getInstance().getChainstateBucket();
         for (Map.Entry<String, byte[]> entry : chainstateBucket.entrySet()) {
             String txId = entry.getKey();

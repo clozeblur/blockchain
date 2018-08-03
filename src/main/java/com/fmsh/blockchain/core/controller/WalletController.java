@@ -73,22 +73,26 @@ public class WalletController {
         if (ifNotLeader()) {
             return restTemplate.postForEntity(LeaderPersist.getLeaderUrl() + "/wallet/checkBalance", map, String.class).getBody();
         }
-
         String address = String.valueOf(map.get("address"));
+        long balance = getBalance(address);
+        return String.valueOf(balance);
+    }
+
+    private long getBalance(String address) {
         Blockchain blockchain = blockchain();
         UTXOSet utxoSet = new UTXOSet(blockchain);
 
         byte[] versionedPayload = Base58Check.base58ToBytes(address);
         byte[] pubKeyHash = Arrays.copyOfRange(versionedPayload, 1, versionedPayload.length);
-
         TXOutput[] txOutputs = utxoSet.findUTXOs(pubKeyHash);
-        int balance = 0;
+
+        long balance = 0;
         if (txOutputs != null && txOutputs.length > 0) {
             for (TXOutput txOutput : txOutputs) {
                 balance += txOutput.getValue();
             }
         }
-        return String.valueOf(balance);
+        return balance;
     }
 
     @PostMapping("/requestCoin")
@@ -106,7 +110,12 @@ public class WalletController {
 
         BCECPrivateKey sk = (BCECPrivateKey) bytesToSk(skBytes);
 
-        Integer amount = Integer.valueOf(String.valueOf(map.get("amount")));
+        Long amount = Long.valueOf(String.valueOf(map.get("amount")));
+
+        if (amount < 1 || amount > (Long.MAX_VALUE - 1) / 2) {
+            log.error("ERROR: amount invalid ! amount=" + amount);
+            return "ERROR: amount invalid ! amount=" + amount;
+        }
 
         String address = getAddress(username);
 
@@ -117,13 +126,20 @@ public class WalletController {
             log.error("ERROR: user address invalid ! address=" + address, e);
             return "ERROR: user address invalid ! address=" + address;
         }
+
+        long balance = getBalance(address);
+
+        if (balance + amount > (Long.MAX_VALUE - 1) / 2) {
+            return "申请coin后的余额不能超过2的62次方";
+        }
+
         // 新交易
         Transaction transaction = Transaction.requestedCoinTX(address, amount);
 
         if (sk == null) {
             return "私钥解析异常";
         }
-        Block block = newBlock(transaction, "from:央行申请" + ",to:" + address, pk, sk);
+        Block block = newBlock(transaction, "from:央行申请 | amount=" + amount + ",to:" + address, pk, sk);
         return block.getHash();
     }
 
@@ -142,7 +158,12 @@ public class WalletController {
         byte[] skBytes = Base64.decode(String.valueOf(map.get("sk")), Charset.defaultCharset());
 
         BCECPrivateKey sk = (BCECPrivateKey) bytesToSk(skBytes);
-        int amount = Integer.valueOf(String.valueOf(map.get("amount")));
+        Long amount = Long.valueOf(String.valueOf(map.get("amount")));
+
+        if (amount < 1 || amount > (Long.MAX_VALUE - 1) / 2) {
+            log.error("ERROR: amount invalid ! amount=" + amount);
+            return "ERROR: amount invalid ! amount=" + amount;
+        }
 
         String from = getAddress(sender);
 
@@ -161,6 +182,12 @@ public class WalletController {
         } catch (Exception e) {
             log.error("ERROR: receiver address invalid ! address=" + to, e);
             return "ERROR: receiver address invalid ! address=" + to;
+        }
+
+        long senderBalance = getBalance(from);
+        long receiverBalance = getBalance(to);
+        if (senderBalance - amount < 1 || receiverBalance + amount > (Long.MAX_VALUE - 1) / 2) {
+            return "发送方余额不足或接收方余额越界(超过2的62次方)";
         }
 
         String lastBlockHash = RocksDBUtils.getInstance().getLastBlockHash();

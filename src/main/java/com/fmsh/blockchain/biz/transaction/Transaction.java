@@ -79,11 +79,11 @@ public class Transaction {
         return oneWayCoin(data, to, 0);
     }
 
-    public static Transaction requestedCoinTX(String to, int amount) {
+    public static Transaction requestedCoinTX(String to, long amount) {
         return oneWayCoin("request from ...", to, amount);
     }
 
-    private static Transaction oneWayCoin(String data, String to, int amount) {
+    private static Transaction oneWayCoin(String data, String to, long amount) {
         if (StringUtils.isBlank(data)) {
             data = String.format("Reward to '%s'", to);
         }
@@ -120,12 +120,12 @@ public class Transaction {
      * @return tx
      */
     public static Transaction newUTXOTransaction(String from, String to, byte[] publicKey, BCECPrivateKey privateKey,
-                                                 int amount, Blockchain blockchain)
+                                                 long amount, Blockchain blockchain)
             throws DecoderException, NotEnoughFundsException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException {
         byte[] pubKeyHash = BtcAddressUtils.ripeMD160Hash(publicKey);
 
         SpendableOutputResult result = new UTXOSet(blockchain).findSpendableOutputs(pubKeyHash, amount);
-        int accumulated = result.getAccumulated();
+        long accumulated = result.getAccumulated();
         Map<String, int[]> unspentOuts = result.getUnspentOuts();
 
         if (accumulated < amount) {

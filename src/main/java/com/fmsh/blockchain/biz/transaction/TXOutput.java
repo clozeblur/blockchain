@@ -21,7 +21,7 @@ public class TXOutput {
     /**
      * 数值
      */
-    private int value;
+    private long value;
     /**
      * 公钥Hash
      */
@@ -34,7 +34,7 @@ public class TXOutput {
      * @param address address
      * @return output
      */
-    public static TXOutput newTXOutput(int value, String address) {
+    public static TXOutput newTXOutput(long value, String address) {
         // 反向转化为 byte 数组
         byte[] versionedPayload = Base58Check.base58ToBytes(address);
         byte[] pubKeyHash = Arrays.copyOfRange(versionedPayload, 1, versionedPayload.length);

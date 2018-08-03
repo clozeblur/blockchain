@@ -20,7 +20,7 @@ public class SpendableOutputResult {
     /**
      * 交易时的支付金额
      */
-    private int accumulated;
+    private long accumulated;
     /**
      * 未花费的交易
      */
