@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.util.List;
+import java.io.Serializable;
 
 /**
  * @Author: yuanjiaxin
@@ -16,7 +16,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class BlockHeader {
+public class BlockHeader implements Serializable {
+    private static final long serialVersionUID = 8354919997185217326L;
     /**
      * 版本号
      */
@@ -46,8 +47,8 @@ public class BlockHeader {
      * 工作量证明计数器
      */
     private long nonce;
-    /**
-     * 该区块里每条交易信息的hash集合，按顺序来的，通过该hash集合能算出根节点hash
-     */
-    private List<String> hashList;
+//    /**
+//     * 该区块里每条交易信息的hash集合，按顺序来的，通过该hash集合能算出根节点hash
+//     */
+//    private List<String> hashList;
 }

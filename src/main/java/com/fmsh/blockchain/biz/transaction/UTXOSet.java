@@ -42,10 +42,10 @@ public class UTXOSet {
         Map<String, byte[]> chainstateBucket = RocksDBUtils.getInstance().getChainstateBucket();
         for (Map.Entry<String, byte[]> entry : chainstateBucket.entrySet()) {
             String txId = entry.getKey();
-            TXOutput[] txOutputs = (TXOutput[]) SerializeUtils.deserialize(entry.getValue());
+            List<TXOutput> txOutputs = SerializeUtils.deserializeList(entry.getValue(), TXOutput.class);
 
-            for (int outId = 0; outId < txOutputs.length; outId++) {
-                TXOutput txOutput = txOutputs[outId];
+            for (int outId = 0; outId < txOutputs.size(); outId++) {
+                TXOutput txOutput = txOutputs.get(outId);
                 if (txOutput.isLockedWithKey(pubKeyHash) && accumulated < amount) {
                     accumulated += txOutput.getValue();
 
@@ -72,17 +72,17 @@ public class UTXOSet {
      * @param pubKeyHash 钱包公钥Hash
      * @return outputs
      */
-    public TXOutput[] findUTXOs(byte[] pubKeyHash) {
-        TXOutput[] utxos = {};
+    public List<TXOutput> findUTXOs(byte[] pubKeyHash) {
+        List<TXOutput> utxos = new ArrayList<>();
         Map<String, byte[]> chainstateBucket = RocksDBUtils.getInstance().getChainstateBucket();
         if (chainstateBucket.isEmpty()) {
             return utxos;
         }
         for (byte[] value : chainstateBucket.values()) {
-            TXOutput[] txOutputs = (TXOutput[]) SerializeUtils.deserialize(value);
+            List<TXOutput> txOutputs = SerializeUtils.deserializeList(value, TXOutput.class);
             for (TXOutput txOutput : txOutputs) {
                 if (txOutput.isLockedWithKey(pubKeyHash)) {
-                    utxos = ArrayUtils.add(utxos, txOutput);
+                    utxos.add(txOutput);
                 }
             }
         }
@@ -97,8 +97,8 @@ public class UTXOSet {
     public void reIndex() {
         log.info("Start to reIndex UTXO set !");
         RocksDBUtils.getInstance().cleanChainStateBucket();
-        Map<String, TXOutput[]> allUTXOs = blockchain.findAllUTXOs();
-        for (Map.Entry<String, TXOutput[]> entry : allUTXOs.entrySet()) {
+        Map<String, List<TXOutput>> allUTXOs = blockchain.findAllUTXOs();
+        for (Map.Entry<String, List<TXOutput>> entry : allUTXOs.entrySet()) {
             RocksDBUtils.getInstance().putUTXOs(entry.getKey(), entry.getValue());
         }
         log.info("ReIndex UTXO set finished ! ");
@@ -130,22 +130,22 @@ public class UTXOSet {
             if (!transaction.isCoinbase()) {
                 for (TXInput txInput : transaction.getInputs()) {
                     // 余下未被使用的交易输出
-                    TXOutput[] remainderUTXOs = {};
+                    List<TXOutput> remainderUTXOs = new ArrayList<>();
                     String txId = Hex.encodeHexString(txInput.getTxId());
-                    TXOutput[] txOutputs = RocksDBUtils.getInstance().getUTXOs(txId);
+                    List<TXOutput> txOutputs = RocksDBUtils.getInstance().getUTXOs(txId);
 
                     if (txOutputs == null) {
                         continue;
                     }
 
-                    for (int outIndex = 0; outIndex < txOutputs.length; outIndex++) {
+                    for (int outIndex = 0; outIndex < txOutputs.size(); outIndex++) {
                         if (outIndex != txInput.getTxOutputIndex()) {
-                            remainderUTXOs = ArrayUtils.add(remainderUTXOs, txOutputs[outIndex]);
+                            remainderUTXOs.add(txOutputs.get(outIndex));
                         }
                     }
 
                     // 没有剩余则删除，否则更新
-                    if (remainderUTXOs.length == 0) {
+                    if (remainderUTXOs.size() == 0) {
                         RocksDBUtils.getInstance().deleteUTXOs(txId);
                     } else {
                         RocksDBUtils.getInstance().putUTXOs(txId, remainderUTXOs);
@@ -154,7 +154,7 @@ public class UTXOSet {
             }
 
             // 新的交易输出保存到DB中
-            TXOutput[] txOutputs = transaction.getOutputs();
+            List<TXOutput> txOutputs = transaction.getOutputs();
             String txId = Hex.encodeHexString(transaction.getTxId());
             RocksDBUtils.getInstance().putUTXOs(txId, txOutputs);
         }

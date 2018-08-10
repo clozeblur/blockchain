@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 /**
@@ -16,8 +17,9 @@ import java.util.Arrays;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TXInput {
+public class TXInput implements Serializable {
 
+    private static final long serialVersionUID = -2665010317915030686L;
     /**
      * 交易Id的hash值
      */

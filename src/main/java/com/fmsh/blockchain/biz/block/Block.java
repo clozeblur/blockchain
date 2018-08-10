@@ -1,15 +1,12 @@
 package com.fmsh.blockchain.biz.block;
 
 import com.fmsh.blockchain.biz.transaction.MerkleTree;
-import com.fmsh.blockchain.biz.transaction.Transaction;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable;
 
 /**
  * 区块
@@ -21,8 +18,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class Block {
+public class Block implements Serializable {
 
+    private static final long serialVersionUID = 3306914466108386966L;
     /**
      * 区块hash值
      */

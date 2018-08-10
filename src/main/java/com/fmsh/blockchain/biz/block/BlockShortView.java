@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.List;
+
 /**
  * @Author: yuanjiaxin
  * @Date: 2018/8/3 9:09
@@ -39,9 +41,9 @@ public class BlockShortView {
     /**
      * 交易输入
      */
-    private TXInput[] inputs;
+    private List<TXInput> inputs;
     /**
      * 交易输出
      */
-    private TXOutput[] outputs;
+    private List<TXOutput> outputs;
 }

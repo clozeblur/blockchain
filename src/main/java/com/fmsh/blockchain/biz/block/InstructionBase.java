@@ -2,11 +2,14 @@ package com.fmsh.blockchain.biz.block;
 
 import com.fmsh.blockchain.biz.transaction.Transaction;
 
+import java.io.Serializable;
+
 /**
  * blockBody内一条指令的基础属性
  * @author wuweifeng wrote on 2018/4/4.
  */
-public class InstructionBase {
+public class InstructionBase implements Serializable {
+    private static final long serialVersionUID = 5214995961916840606L;
     /**
      * 指令的操作，增删改（1，-1，2）
      */

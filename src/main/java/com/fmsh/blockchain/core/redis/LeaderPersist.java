@@ -11,7 +11,9 @@ public class LeaderPersist {
 
     private LeaderPersist() {}
 
-    private static Leader leader;
+    private static volatile Leader leader;
+
+    private static volatile Boolean ifLeader = false;
 
     public static Leader getLeader() {
         return leader;
@@ -19,6 +21,14 @@ public class LeaderPersist {
 
     public static void setLeader(Leader leader) {
         LeaderPersist.leader = leader;
+    }
+
+    public static Boolean getIfLeader() {
+        return ifLeader;
+    }
+
+    public static void setIfLeader(Boolean ifLeader) {
+        LeaderPersist.ifLeader = ifLeader;
     }
 
     public static String getLeaderUrl() {

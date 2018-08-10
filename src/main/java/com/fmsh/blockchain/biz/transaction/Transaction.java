@@ -1,5 +1,6 @@
 package com.fmsh.blockchain.biz.transaction;
 
+import cn.hutool.core.codec.Base64;
 import com.fmsh.blockchain.biz.block.Blockchain;
 import com.fmsh.blockchain.biz.util.BtcAddressUtils;
 import com.fmsh.blockchain.biz.util.SerializeUtils;
@@ -11,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 import org.bouncycastle.jce.ECNamedCurveTable;
@@ -20,11 +20,11 @@ import org.bouncycastle.jce.spec.ECParameterSpec;
 import org.bouncycastle.jce.spec.ECPublicKeySpec;
 import org.bouncycastle.math.ec.ECPoint;
 
+import java.io.Serializable;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.security.*;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 交易
@@ -36,7 +36,8 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @Slf4j
-public class Transaction {
+public class Transaction implements Serializable {
+    private static final long serialVersionUID = -6378642650700178914L;
     /**
      * 交易的Hash
      */
@@ -44,11 +45,11 @@ public class Transaction {
     /**
      * 交易输入
      */
-    private TXInput[] inputs;
+    private List<TXInput> inputs;
     /**
      * 交易输出
      */
-    private TXOutput[] outputs;
+    private List<TXOutput> outputs;
     /**
      * 创建日期
      */
@@ -61,10 +62,10 @@ public class Transaction {
      */
     public byte[] hash() {
         // 使用序列化的方式对Transaction对象进行深度复制
-        byte[] serializeBytes = SerializeUtils.serialize(this);
-        Transaction copyTx = (Transaction) SerializeUtils.deserialize(serializeBytes);
+        byte[] serializeBytes = SerializeUtils.serializeObject(this);
+        Transaction copyTx = SerializeUtils.deserializeObject(serializeBytes, Transaction.class);
         copyTx.setTxId(new byte[]{});
-        return DigestUtils.sha256(SerializeUtils.serialize(copyTx));
+        return DigestUtils.sha256(SerializeUtils.serializeObject(copyTx));
     }
 
     /**
@@ -92,8 +93,8 @@ public class Transaction {
         // 创建交易输出
         TXOutput txOutput = TXOutput.newTXOutput(amount, to);
         // 创建交易
-        Transaction tx = new Transaction(null, new TXInput[]{txInput},
-                new TXOutput[]{txOutput}, System.currentTimeMillis());
+        Transaction tx = new Transaction(null, Collections.singletonList(txInput),
+                Collections.singletonList(txOutput), System.currentTimeMillis());
         // 设置交易ID
         tx.setTxId(tx.hash());
         return tx;
@@ -105,9 +106,9 @@ public class Transaction {
      * @return bool
      */
     public boolean isCoinbase() {
-        return this.getInputs().length == 1
-                && this.getInputs()[0].getTxId().length == 0
-                && this.getInputs()[0].getTxOutputIndex() == -1;
+        return this.getInputs().size() == 1
+                && this.getInputs().get(0).getTxId().length == 0
+                && this.getInputs().get(0).getTxOutputIndex() == -1;
     }
 
     /**
@@ -134,24 +135,24 @@ public class Transaction {
         }
         Iterator<Map.Entry<String, int[]>> iterator = unspentOuts.entrySet().iterator();
 
-        TXInput[] txInputs = {};
+        List<TXInput> txInputs = new ArrayList<>();
         while (iterator.hasNext()) {
             Map.Entry<String, int[]> entry = iterator.next();
             String txIdStr = entry.getKey();
             int[] outIds = entry.getValue();
             byte[] txId = Hex.decodeHex(txIdStr.toCharArray());
             for (int outIndex : outIds) {
-                txInputs = ArrayUtils.add(txInputs, new TXInput(txId, outIndex, null, publicKey));
+                txInputs.add(new TXInput(txId, outIndex, null, publicKey));
             }
         }
 
-        TXOutput[] txOutput = {};
-        txOutput = ArrayUtils.add(txOutput, TXOutput.newTXOutput(amount, to));
+        List<TXOutput> txOutputs = new ArrayList<>();
+        txOutputs.add(TXOutput.newTXOutput(amount, to));
         if (accumulated > amount) {
-            txOutput = ArrayUtils.add(txOutput, TXOutput.newTXOutput((accumulated - amount), from));
+            txOutputs.add(TXOutput.newTXOutput((accumulated - amount), from));
         }
 
-        Transaction newTx = new Transaction(null, txInputs, txOutput, System.currentTimeMillis());
+        Transaction newTx = new Transaction(null, txInputs, txOutputs, System.currentTimeMillis());
         newTx.setTxId(newTx.hash());
 
         // 进行交易签名
@@ -165,19 +166,19 @@ public class Transaction {
      * @return tx
      */
     private Transaction trimmedCopy() {
-        TXInput[] tmpTXInputs = new TXInput[this.getInputs().length];
-        for (int i = 0; i < this.getInputs().length; i++) {
-            TXInput txInput = this.getInputs()[i];
+        TXInput[] tmpTXInputs = new TXInput[this.getInputs().size()];
+        for (int i = 0; i < this.getInputs().size(); i++) {
+            TXInput txInput = this.getInputs().get(i);
             tmpTXInputs[i] = new TXInput(txInput.getTxId(), txInput.getTxOutputIndex(), null, null);
         }
 
-        TXOutput[] tmpTXOutputs = new TXOutput[this.getOutputs().length];
-        for (int i = 0; i < this.getOutputs().length; i++) {
-            TXOutput txOutput = this.getOutputs()[i];
+        TXOutput[] tmpTXOutputs = new TXOutput[this.getOutputs().size()];
+        for (int i = 0; i < this.getOutputs().size(); i++) {
+            TXOutput txOutput = this.getOutputs().get(i);
             tmpTXOutputs[i] = new TXOutput(txOutput.getValue(), txOutput.getPubKeyHash());
         }
 
-        return new Transaction(this.getTxId(), tmpTXInputs, tmpTXOutputs, this.getCreateTime());
+        return new Transaction(this.getTxId(), Arrays.asList(tmpTXInputs), Arrays.asList(tmpTXOutputs), this.getCreateTime());
     }
 
 
@@ -206,12 +207,12 @@ public class Transaction {
         Signature ecdsaSign = Signature.getInstance("SHA256withECDSA", BouncyCastleProvider.PROVIDER_NAME);
         ecdsaSign.initSign(privateKey);
 
-        for (int i = 0; i < txCopy.getInputs().length; i++) {
-            TXInput txInputCopy = txCopy.getInputs()[i];
+        for (int i = 0; i < txCopy.getInputs().size(); i++) {
+            TXInput txInputCopy = txCopy.getInputs().get(i);
             // 获取交易输入TxID对应的交易数据
             Transaction prevTx = prevTxMap.get(Hex.encodeHexString(txInputCopy.getTxId()));
             // 获取交易输入所对应的上一笔交易中的交易输出
-            TXOutput prevTxOutput = prevTx.getOutputs()[txInputCopy.getTxOutputIndex()];
+            TXOutput prevTxOutput = prevTx.getOutputs().get(txInputCopy.getTxOutputIndex());
             txInputCopy.setPubKey(prevTxOutput.getPubKeyHash());
             txInputCopy.setSignature(null);
             // 得到要签名的数据，即交易ID
@@ -223,13 +224,10 @@ public class Transaction {
             byte[] signature = ecdsaSign.sign();
 
             log.info("======================================================================");
-            log.info("======================================================================");
-            log.info(new String(signature));
-            log.info("======================================================================");
-            log.info("======================================================================");
+            log.info(Base64.encode(signature, Charset.defaultCharset()));
             // 将整个交易数据的签名赋值给交易输入，因为交易输入需要包含整个交易信息的签名
             // 注意是将得到的签名赋值给原交易信息中的交易输入
-            this.getInputs()[i].setSignature(signature);
+            this.getInputs().get(i).setSignature(signature);
         }
     }
 
@@ -261,14 +259,14 @@ public class Transaction {
         KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", BouncyCastleProvider.PROVIDER_NAME);
         Signature ecdsaVerify = Signature.getInstance("SHA256withECDSA", BouncyCastleProvider.PROVIDER_NAME);
 
-        for (int i = 0; i < this.getInputs().length; i++) {
-            TXInput txInput = this.getInputs()[i];
+        for (int i = 0; i < this.getInputs().size(); i++) {
+            TXInput txInput = this.getInputs().get(i);
             // 获取交易输入TxID对应的交易数据
             Transaction prevTx = prevTxMap.get(Hex.encodeHexString(txInput.getTxId()));
             // 获取交易输入所对应的上一笔交易中的交易输出
-            TXOutput prevTxOutput = prevTx.getOutputs()[txInput.getTxOutputIndex()];
+            TXOutput prevTxOutput = prevTx.getOutputs().get(txInput.getTxOutputIndex());
 
-            TXInput txInputCopy = txCopy.getInputs()[i];
+            TXInput txInputCopy = txCopy.getInputs().get(i);
             txInputCopy.setSignature(null);
             txInputCopy.setPubKey(prevTxOutput.getPubKeyHash());
             // 得到要签名的数据，即交易ID

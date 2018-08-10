@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -16,7 +17,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class BlockBody {
+public class BlockBody implements Serializable {
+    private static final long serialVersionUID = -5571983054431440954L;
     /**
      * 交易信息
      */

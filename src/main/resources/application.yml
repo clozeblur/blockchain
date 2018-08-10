@@ -21,8 +21,8 @@ db:
   levelDB: false    #在部分Windows机器上rocksDB会报错dll找不到，那么就用levelDB来替代
   rocksDB: true
 version: 1
-name: ${NAME:node4}
-appId: ${APP_ID:node4}
+name: ${NAME:node1}
+appId: ${APP_ID:node1}
 managerUrl: ${MANAGER_URL:http://192.168.95.133:8888/}
 
 #singeNode: false

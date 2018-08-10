@@ -21,10 +21,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SignatureException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * <p> 区块链 </p>
@@ -112,9 +109,9 @@ public class Blockchain {
      *
      * @return map
      */
-    public Map<String, TXOutput[]> findAllUTXOs() {
+    public Map<String, List<TXOutput>> findAllUTXOs() {
         Map<String, int[]> allSpentTXOs = this.getAllSpentTXOs();
-        Map<String, TXOutput[]> allUTXOs = Maps.newHashMap();
+        Map<String, List<TXOutput>> allUTXOs = Maps.newHashMap();
         // 再次遍历所有区块中的交易输出
         for (BlockchainIterator blockchainIterator = this.getBlockchainIterator(); blockchainIterator.hashNext(); ) {
             Block block = blockchainIterator.next();
@@ -128,16 +125,16 @@ public class Blockchain {
                 String txId = Hex.encodeHexString(transaction.getTxId());
 
                 int[] spentOutIndexArray = allSpentTXOs.get(txId);
-                TXOutput[] txOutputs = transaction.getOutputs();
-                for (int outIndex = 0; outIndex < txOutputs.length; outIndex++) {
+                List<TXOutput> txOutputs = transaction.getOutputs();
+                for (int outIndex = 0; outIndex < txOutputs.size(); outIndex++) {
                     if (spentOutIndexArray != null && ArrayUtils.contains(spentOutIndexArray, outIndex)) {
                         continue;
                     }
-                    TXOutput[] UTXOArray = allUTXOs.get(txId);
+                    List<TXOutput> UTXOArray = allUTXOs.get(txId);
                     if (UTXOArray == null) {
-                        UTXOArray = new TXOutput[]{txOutputs[outIndex]};
+                        UTXOArray = Collections.singletonList(txOutputs.get(outIndex));
                     } else {
-                        UTXOArray = ArrayUtils.add(UTXOArray, txOutputs[outIndex]);
+                        UTXOArray.add(txOutputs.get(outIndex));
                     }
                     allUTXOs.put(txId, UTXOArray);
                 }

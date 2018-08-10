@@ -6,10 +6,8 @@ import com.fmsh.blockchain.biz.block.Block;
 import com.fmsh.blockchain.biz.block.BlockBody;
 import com.fmsh.blockchain.biz.block.BlockHeader;
 import com.fmsh.blockchain.biz.block.Instruction;
-import com.fmsh.blockchain.biz.transaction.MerkleTree;
 import com.fmsh.blockchain.biz.util.Sha256;
 import com.fmsh.blockchain.common.CommonUtil;
-import com.fmsh.blockchain.common.exception.TrustSDKException;
 import com.fmsh.blockchain.core.body.BlockRequestBody;
 import com.fmsh.blockchain.core.manager.BlockManager;
 import com.fmsh.blockchain.socket.body.RpcBlockBody;
@@ -97,7 +95,6 @@ public class BlockService {
                 .toList());
 
         BlockHeader blockHeader = new BlockHeader();
-        blockHeader.setHashList(hashList);
 
         //计算所有指令的hashRoot
         blockHeader.setMerkleRootHash(Arrays.toString(new Block(null, null, blockBody).hashTransaction()));
@@ -110,10 +107,6 @@ public class BlockService {
         block.setBlockBody(blockBody);
         block.setBlockHeader(blockHeader);
         block.setHash(Sha256.sha256(blockHeader.toString() + blockBody.toString()));
-
-        log.info("==============================================================================================");
-        log.info("当前新生成的block.hash为： " + block.getHash());
-        log.info("==============================================================================================");
 
         BlockPacket blockPacket = new PacketBuilder<>().setType(PacketType.GENERATE_BLOCK_REQUEST).setBody(new
                 RpcBlockBody(block)).build();

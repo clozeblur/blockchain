@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -216,7 +217,7 @@ public class RocksDBUtils {
      */
     public void putBlock(Block block) {
         try {
-            blocksBucket.put(block.getHash(), SerializeUtils.serialize(block));
+            blocksBucket.put(block.getHash(), SerializeUtils.serializeObject(block));
             db.put(SerializeUtils.serialize(BLOCKS_BUCKET_KEY), SerializeUtils.serialize(blocksBucket));
         } catch (RocksDBException e) {
             log.error("Fail to put block ! block=" + block.toString(), e);
@@ -233,7 +234,7 @@ public class RocksDBUtils {
     public Block getBlock(String blockHash) {
         byte[] blockBytes = blocksBucket.get(blockHash);
         if (blockBytes != null) {
-            return (Block) SerializeUtils.deserialize(blockBytes);
+            return SerializeUtils.deserializeObject(blockBytes, Block.class);
         }
         log.error("Fail to get block ! blockHash=" + blockHash);
         return null;
@@ -258,9 +259,9 @@ public class RocksDBUtils {
      * @param key   交易ID
      * @param utxos UTXOs
      */
-    public void putUTXOs(String key, TXOutput[] utxos) {
+    public void putUTXOs(String key, List<TXOutput> utxos) {
         try {
-            chainstateBucket.put(key, SerializeUtils.serialize(utxos));
+            chainstateBucket.put(key, SerializeUtils.serializeList(utxos, TXOutput.class));
             db.put(SerializeUtils.serialize(CHAINSTATE_BUCKET_KEY), SerializeUtils.serialize(chainstateBucket));
         } catch (Exception e) {
             log.error("Fail to put UTXOs into chainstate bucket ! key=" + key, e);
@@ -274,10 +275,10 @@ public class RocksDBUtils {
      *
      * @param key 交易ID
      */
-    public TXOutput[] getUTXOs(String key) {
+    public List<TXOutput> getUTXOs(String key) {
         byte[] utxosByte = chainstateBucket.get(key);
         if (utxosByte != null) {
-            return (TXOutput[]) SerializeUtils.deserialize(utxosByte);
+            return SerializeUtils.deserializeList(utxosByte, TXOutput.class);
         }
         return null;
     }
