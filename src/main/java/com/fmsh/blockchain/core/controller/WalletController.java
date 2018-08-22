@@ -1,21 +1,10 @@
 package com.fmsh.blockchain.core.controller;
 
-import cn.hutool.core.collection.CollectionUtil;
 import com.fmsh.blockchain.biz.block.*;
-import com.fmsh.blockchain.biz.transaction.TXInput;
-import com.fmsh.blockchain.biz.transaction.TXOutput;
-import com.fmsh.blockchain.biz.transaction.Transaction;
-import com.fmsh.blockchain.common.CommonUtil;
-import com.fmsh.blockchain.core.body.BlockRequestBody;
-import com.fmsh.blockchain.core.body.InstructionBody;
 import com.fmsh.blockchain.core.manager.BlockManager;
-import com.fmsh.blockchain.core.queue.RequestQueue;
 import com.fmsh.blockchain.core.redis.LeaderPersist;
-import com.fmsh.blockchain.core.service.BlockService;
-import com.fmsh.blockchain.core.service.InstructionService;
 import com.fmsh.blockchain.core.service.WalletService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -36,12 +25,6 @@ public class WalletController {
 
     @Resource
     private RestTemplate restTemplate;
-
-    @Resource
-    private BlockService blockService;
-
-    @Resource
-    private InstructionService instructionService;
 
     @Resource
     private WalletService walletService;
@@ -65,7 +48,9 @@ public class WalletController {
         if (!LeaderPersist.getIfLeader()) {
             return restTemplate.postForEntity(LeaderPersist.getLeaderUrl() + "/wallet/requestCoin", map, String.class).getBody();
         }
-        return walletService.requestCoin(map);
+
+//        return walletService.requestCoin(map);
+        return walletService.generateRequestCoinTransaction(map);
     }
 
     @PostMapping("/doSend")
@@ -74,7 +59,8 @@ public class WalletController {
         if (!LeaderPersist.getIfLeader()) {
             return restTemplate.postForEntity(LeaderPersist.getLeaderUrl() + "/wallet/doSend", map, String.class).getBody();
         }
-        return walletService.sendCoin(map);
+//        return walletService.sendCoin(map);
+        return walletService.generateSendCoinTransaction(map);
     }
 
     @PostMapping("/queryRelatedBlocks")
@@ -109,46 +95,5 @@ public class WalletController {
     @ResponseBody
     public Block getFirstBlock() {
         return blockManager.getFirstBlock();
-    }
-
-    @GetMapping("/createBlockchain")
-    @ResponseBody
-    public Block createBlockchain() {
-        if (!LeaderPersist.getIfLeader()) {
-            return restTemplate.getForEntity(LeaderPersist.getLeaderUrl() + "/wallet/createBlockchain", Block.class).getBody();
-        }
-        String firstBlockHash = blockManager.getFirstBlockHash();
-        if (!StringUtils.isBlank(firstBlockHash)) {
-            throw new RuntimeException("区块链无法再次创造");
-        }
-
-        // 创建交易输入
-        TXInput txInput = new TXInput(new byte[]{}, -1, null, null);
-        // 创建交易输出
-        TXOutput txOutput = new TXOutput(0, null);
-        // 创建交易
-        Transaction tx = new Transaction(null, Collections.singletonList(txInput),
-                Collections.singletonList(txOutput), System.currentTimeMillis());
-        // 设置交易ID
-        tx.setTxId(tx.hash());
-
-        InstructionBody instructionBody = new InstructionBody();
-        instructionBody.setOperation(Operation.ADD);
-        instructionBody.setTable("message");
-        instructionBody.setJson("{\"content\":\"" + "创世区块" + "\"}");
-        instructionBody.setPublicKey(null);
-        instructionBody.setPrivateKey(null);
-
-        Instruction instruction = instructionService.build(instructionBody);
-        instruction.setTransaction(tx);
-
-        BlockRequestBody blockRequestBody = new BlockRequestBody();
-        blockRequestBody.setPublicKey(instructionBody.getPublicKey());
-        BlockBody blockBody = new BlockBody();
-        blockBody.setInstructions(CollectionUtil.newArrayList(instruction));
-
-        blockRequestBody.setBlockBody(blockBody);
-
-        return blockService.addBlock(blockRequestBody);
     }
 }

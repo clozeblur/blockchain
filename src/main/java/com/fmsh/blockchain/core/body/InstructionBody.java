@@ -16,22 +16,6 @@ public class InstructionBody {
      * 具体内容
      */
     private String json;
-    /**
-     * 原始内容
-     */
-    private String oldJson;
-    /**
-     * 业务id
-     */
-    private String instructionId;
-    /**
-     * 私钥
-     */
-    private String privateKey;
-    /**
-     * 公钥
-     */
-    private String publicKey;
 
     @Override
     public String toString() {
@@ -39,35 +23,7 @@ public class InstructionBody {
                 "operation=" + operation +
                 ", table='" + table + '\'' +
                 ", json='" + json + '\'' +
-                ", oldJson='" + oldJson + '\'' +
-                ", instructionId='" + instructionId + '\'' +
-                ", privateKey='" + privateKey + '\'' +
-                ", publicKey='" + publicKey + '\'' +
                 '}';
-    }
-
-    public String getOldJson() {
-        return oldJson;
-    }
-
-    public void setOldJson(String oldJson) {
-        this.oldJson = oldJson;
-    }
-
-    public String getInstructionId() {
-        return instructionId;
-    }
-
-    public void setInstructionId(String instructionId) {
-        this.instructionId = instructionId;
-    }
-
-    public String getPublicKey() {
-        return publicKey;
-    }
-
-    public void setPublicKey(String publicKey) {
-        this.publicKey = publicKey;
     }
 
     public byte getOperation() {
@@ -92,13 +48,5 @@ public class InstructionBody {
 
     public void setJson(String json) {
         this.json = json;
-    }
-
-    public String getPrivateKey() {
-        return privateKey;
-    }
-
-    public void setPrivateKey(String privateKey) {
-        this.privateKey = privateKey;
     }
 }

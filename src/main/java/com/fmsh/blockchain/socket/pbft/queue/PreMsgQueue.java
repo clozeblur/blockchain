@@ -5,7 +5,6 @@ import com.fmsh.blockchain.biz.block.Block;
 import com.fmsh.blockchain.common.AppId;
 import com.fmsh.blockchain.common.timer.TimerManager;
 import com.fmsh.blockchain.core.event.AddBlockEvent;
-import com.fmsh.blockchain.core.sqlite.SqliteManager;
 import com.fmsh.blockchain.socket.pbft.VoteType;
 import com.fmsh.blockchain.socket.pbft.event.MsgPrepareEvent;
 import com.fmsh.blockchain.socket.pbft.msg.VoteMsg;
@@ -28,8 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class PreMsgQueue extends BaseMsgQueue {
     @Resource
-    private SqliteManager sqliteManager;
-    @Resource
     private PrepareMsgQueue prepareMsgQueue;
     @Resource
     private ApplicationEventPublisher eventPublisher;
@@ -51,17 +48,6 @@ public class PreMsgQueue extends BaseMsgQueue {
             log.info("拒绝进入Prepare阶段，hash为" + hash);
             return;
         }
-        // 检测脚本是否正常
-        try {
-			sqliteManager.tryExecute(votePreMsg.getBlock());
-		} catch (Exception e) {
-			if(!"00001".equals(e.getMessage())){
-				// 执行异常
-				return;
-			}else{
-				log.info("指令预校验执行成功！");
-			}
-		}
         
         //存入Pre集合中
         blockConcurrentHashMap.put(hash, votePreMsg);

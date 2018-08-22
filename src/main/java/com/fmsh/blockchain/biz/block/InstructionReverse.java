@@ -5,5 +5,5 @@ package com.fmsh.blockchain.biz.block;
  * @author wuweifeng wrote on 2018/3/2.
  */
 public class InstructionReverse extends InstructionBase {
-    
+    private static final long serialVersionUID = 3755037163650693782L;
 }

@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.tio.core.ChannelContext;
 import org.tio.core.intf.Packet;
 import org.tio.server.intf.ServerAioListener;
-import org.tio.utils.json.Json;
 
 /**
  * @author wuweifeng wrote on 2018/3/12.
@@ -16,30 +15,30 @@ public class BlockServerAioListener implements ServerAioListener {
 
 	@Override
 	public void onAfterConnected(ChannelContext channelContext, boolean isConnected, boolean isReconnect) {
-		log.info("onAfterConnected channelContext:{}, isConnected:{}, isReconnect:{}", channelContext, isConnected, isReconnect);
+//		log.info("onAfterConnected channelContext:{}, isConnected:{}, isReconnect:{}", channelContext, isConnected, isReconnect);
 
 		//连接后，需要把连接会话对象设置给channelContext
 		//channelContext.setAttribute(new ShowcaseSessionContext());
 	}
 
 	@Override
-	public void onAfterDecoded(ChannelContext channelContext, Packet packet, int i) throws Exception {
+	public void onAfterDecoded(ChannelContext channelContext, Packet packet, int i) {
 
 	}
 
 	@Override
-	public void onAfterReceivedBytes(ChannelContext channelContext, int i) throws Exception {
-		log.info("onAfterReceived channelContext:{}, packet:{}, packetSize:{}");
+	public void onAfterReceivedBytes(ChannelContext channelContext, int i) {
+//		log.info("onAfterReceived channelContext:{}, packet:{}, packetSize:{}");
 	}
 
 
 	@Override
 	public void onAfterSent(ChannelContext channelContext, Packet packet, boolean isSentSuccess) {
-		log.info("onAfterSent channelContext:{}, packet:{}, isSentSuccess:{}", channelContext, Json.toJson(packet), isSentSuccess);
+//		log.info("onAfterSent channelContext:{}, packet:{}, isSentSuccess:{}", channelContext, packet.getId(), isSentSuccess);
 	}
 
 	@Override
-	public void onAfterHandled(ChannelContext channelContext, Packet packet, long l) throws Exception {
+	public void onAfterHandled(ChannelContext channelContext, Packet packet, long l) {
 
 	}
 

@@ -20,8 +20,8 @@ public class TotalBlockInfoRequestHandler extends AbstractBlockHandler<RpcBlockB
     }
 
     @Override
-    public Object handler(BlockPacket packet, RpcBlockBody rpcBlockBody, ChannelContext channelContext) throws Exception {
-        log.info("收到<请求生成Block的回应>消息", Json.toJson(rpcBlockBody));
+    public Object handler(BlockPacket packet, RpcBlockBody rpcBlockBody, ChannelContext channelContext) {
+        log.info("收到<请求生成Block的回应>消息: {}", Json.toJson(rpcBlockBody.getBlock().getHash()));
 
         //TODO check合法性
         //TODO response

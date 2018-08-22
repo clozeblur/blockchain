@@ -18,7 +18,7 @@ import org.tio.core.intf.Packet;
 public class BlockClientAioListener implements ClientAioListener {
 
     @Override
-    public void onAfterConnected(ChannelContext channelContext, boolean isConnected, boolean isReconnect) throws Exception {
+    public void onAfterConnected(ChannelContext channelContext, boolean isConnected, boolean isReconnect) {
 //        if (isConnected) {
 //            logger.info("连接成功：server地址为-" + channelContext.getServerNode());
 //            Aio.bindGroup(channelContext, Const.GROUP_NAME);
@@ -35,22 +35,22 @@ public class BlockClientAioListener implements ClientAioListener {
     }
 
     @Override
-    public void onAfterDecoded(ChannelContext channelContext, Packet packet, int i) throws Exception {
+    public void onAfterDecoded(ChannelContext channelContext, Packet packet, int i) {
 
     }
 
     @Override
-    public void onAfterReceivedBytes(ChannelContext channelContext, int i) throws Exception {
+    public void onAfterReceivedBytes(ChannelContext channelContext, int i) {
 
     }
 
     @Override
-    public void onAfterSent(ChannelContext channelContext, Packet packet, boolean b) throws Exception {
+    public void onAfterSent(ChannelContext channelContext, Packet packet, boolean b) {
 
     }
 
     @Override
-    public void onAfterHandled(ChannelContext channelContext, Packet packet, long l) throws Exception {
+    public void onAfterHandled(ChannelContext channelContext, Packet packet, long l) {
 
     }
 

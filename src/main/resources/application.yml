@@ -7,7 +7,7 @@ spring:
         min-idle: 5
         max-wait: PT10S
         max-active: 8
-    host: 192.168.95.133
+    host: 192.168.95.131
     port: 6379
   jpa:
     show-sql: false
@@ -23,7 +23,7 @@ db:
 version: 1
 name: ${NAME:node1}
 appId: ${APP_ID:node1}
-managerUrl: ${MANAGER_URL:http://192.168.95.133:8888/}
+managerUrl: ${MANAGER_URL:http://192.168.95.131:8888/}
 
 #singeNode: false
 server.port: 8084

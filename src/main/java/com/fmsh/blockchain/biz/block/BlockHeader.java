@@ -30,11 +30,6 @@ public class BlockHeader implements Serializable {
      * merkle tree根节点hash
      */
     private String merkleRootHash;
-
-    /**
-     * 生成该区块的公钥
-     */
-    private String publicKey;
     /**
      * 区块的序号
      */
@@ -47,8 +42,4 @@ public class BlockHeader implements Serializable {
      * 工作量证明计数器
      */
     private long nonce;
-//    /**
-//     * 该区块里每条交易信息的hash集合，按顺序来的，通过该hash集合能算出根节点hash
-//     */
-//    private List<String> hashList;
 }

@@ -140,7 +140,7 @@ public class RocksDBUtils {
             if (chainstateBucketBytes != null) {
                 chainstateBucket = (Map) SerializeUtils.deserialize(chainstateBucketBytes);
             } else {
-                chainstateBucket = Maps.newHashMap();
+                chainstateBucket = Maps.newConcurrentMap();
                 db.put(chainstateBucketKey, SerializeUtils.serialize(chainstateBucket));
             }
         } catch (RocksDBException e) {
@@ -236,7 +236,7 @@ public class RocksDBUtils {
         if (blockBytes != null) {
             return SerializeUtils.deserializeObject(blockBytes, Block.class);
         }
-        log.error("Fail to get block ! blockHash=" + blockHash);
+        log.warn("Fail to get block ! blockHash=" + blockHash);
         return null;
     }
 

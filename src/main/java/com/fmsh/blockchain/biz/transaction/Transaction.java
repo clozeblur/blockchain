@@ -1,6 +1,5 @@
 package com.fmsh.blockchain.biz.transaction;
 
-import cn.hutool.core.codec.Base64;
 import com.fmsh.blockchain.biz.block.Blockchain;
 import com.fmsh.blockchain.biz.util.BtcAddressUtils;
 import com.fmsh.blockchain.biz.util.SerializeUtils;
@@ -22,7 +21,6 @@ import org.bouncycastle.math.ec.ECPoint;
 
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.nio.charset.Charset;
 import java.security.*;
 import java.util.*;
 
@@ -68,18 +66,6 @@ public class Transaction implements Serializable {
         return DigestUtils.sha256(SerializeUtils.serializeObject(copyTx));
     }
 
-    /**
-     * 创建CoinBase交易
-     *
-     * @param to   收账的钱包地址
-     * @param data 解锁脚本数据
-     * @return tx
-     */
-    @SuppressWarnings("unused")
-    public static Transaction newCoinbaseTX(String to, String data) {
-        return oneWayCoin(data, to, 0);
-    }
-
     public static Transaction requestedCoinTX(String to, long amount) {
         return oneWayCoin("request from ...", to, amount);
     }
@@ -120,8 +106,7 @@ public class Transaction implements Serializable {
      * @param blockchain 区块链
      * @return tx
      */
-    public static Transaction newUTXOTransaction(String from, String to, byte[] publicKey, BCECPrivateKey privateKey,
-                                                 long amount, Blockchain blockchain)
+    public static Transaction newUTXOTransaction(String from, String to, byte[] publicKey, BCECPrivateKey privateKey, long amount, Blockchain blockchain)
             throws DecoderException, NotEnoughFundsException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException {
         byte[] pubKeyHash = BtcAddressUtils.ripeMD160Hash(publicKey);
 
@@ -222,9 +207,6 @@ public class Transaction implements Serializable {
             // 对整个交易信息仅进行签名，即对交易ID进行签名
             ecdsaSign.update(txCopy.getTxId());
             byte[] signature = ecdsaSign.sign();
-
-            log.info("======================================================================");
-            log.info(Base64.encode(signature, Charset.defaultCharset()));
             // 将整个交易数据的签名赋值给交易输入，因为交易输入需要包含整个交易信息的签名
             // 注意是将得到的签名赋值给原交易信息中的交易输入
             this.getInputs().get(i).setSignature(signature);

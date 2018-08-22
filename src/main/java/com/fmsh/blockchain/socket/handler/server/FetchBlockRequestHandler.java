@@ -27,7 +27,7 @@ public class FetchBlockRequestHandler extends AbstractBlockHandler<RpcSimpleBloc
 
     @Override
     public Object handler(BlockPacket packet, RpcSimpleBlockBody rpcBlockBody, ChannelContext channelContext) {
-        log.info("收到来自于<" + rpcBlockBody.getAppId() + "><请求该Block>消息，block hash为[" + rpcBlockBody.getHash() + "]");
+        log.info("收到来自于<{}><请求该Block>消息，block hash为[{}]", rpcBlockBody.getAppId(), rpcBlockBody.getHash());
         Block block = ApplicationContextProvider.getBean(BlockManager.class).getBlockByHash(rpcBlockBody.getHash());
 
         BlockPacket blockPacket = new PacketBuilder<>().setType(PacketType.FETCH_BLOCK_INFO_RESPONSE).setBody(new

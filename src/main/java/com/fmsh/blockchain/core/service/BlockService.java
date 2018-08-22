@@ -1,7 +1,6 @@
 package com.fmsh.blockchain.core.service;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.StrUtil;
 import com.fmsh.blockchain.biz.block.Block;
 import com.fmsh.blockchain.biz.block.BlockBody;
 import com.fmsh.blockchain.biz.block.BlockHeader;
@@ -22,7 +21,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @Author: yuanjiaxin
@@ -33,8 +31,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BlockService {
 
-    @Resource
-    private InstructionService instructionService;
     @Value("${version}")
     private int version;
     @Resource
@@ -50,36 +46,13 @@ public class BlockService {
      * @return 是否合法，为null则校验通过，其他则失败并返回原因
      */
     public String check(BlockRequestBody blockRequestBody) {
-        //TODO 此处可能需要校验publicKey的合法性
-        if (blockRequestBody != null) {
-            log.info(blockRequestBody.toString());
-        }
-
-        if (blockRequestBody == null || blockRequestBody.getBlockBody() == null || StrUtil.isEmpty(blockRequestBody
-                .getPublicKey())) {
+        if (blockRequestBody == null || blockRequestBody.getBlockBody() == null) {
             return "请求参数缺失";
         }
         List<Instruction> instructions = blockRequestBody.getBlockBody().getInstructions();
         if (CollectionUtil.isEmpty(instructions)) {
             return "指令信息不能为空";
         }
-
-        for (Instruction instruction : instructions) {
-            log.info("================");
-            log.info("================");
-            log.info("blockRequestBody.getPublicKey()=" + blockRequestBody.getPublicKey());
-            log.info("instruction.getPublicKey())=" + instruction.getPublicKey());
-            if (!StrUtil.equals(blockRequestBody.getPublicKey(), instruction.getPublicKey())) {
-                return "指令内公钥和传来的公钥不匹配";
-            }
-//            if (!instructionService.checkSign(instruction)) {
-//                return "签名校验不通过";
-//            }
-//            if (!instructionService.checkHash(instruction)) {
-//                return "Hash校验不通过";
-//            }
-        }
-
         return null;
     }
 
@@ -90,15 +63,11 @@ public class BlockService {
      */
     public Block addBlock(BlockRequestBody blockRequestBody) {
         BlockBody blockBody = blockRequestBody.getBlockBody();
-        List<Instruction> instructions = blockBody.getInstructions();
-        List<String> hashList = instructions.stream().map(Instruction::getHash).collect(Collectors
-                .toList());
 
         BlockHeader blockHeader = new BlockHeader();
 
         //计算所有指令的hashRoot
         blockHeader.setMerkleRootHash(Arrays.toString(new Block(null, null, blockBody).hashTransaction()));
-        blockHeader.setPublicKey(blockRequestBody.getPublicKey());
         blockHeader.setTimestamp(CommonUtil.getNow());
         blockHeader.setVersion(version);
         blockHeader.setNumber(blockManager.getLastBlockNumber() + 1);

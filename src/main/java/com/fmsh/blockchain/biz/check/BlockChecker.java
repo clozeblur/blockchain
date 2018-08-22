@@ -3,7 +3,6 @@ package com.fmsh.blockchain.biz.check;
 import cn.hutool.core.util.StrUtil;
 import com.fmsh.blockchain.biz.block.Block;
 import com.fmsh.blockchain.biz.util.Sha256;
-import com.fmsh.blockchain.common.exception.TrustSDKException;
 import com.fmsh.blockchain.core.body.BlockRequestBody;
 import com.fmsh.blockchain.core.manager.BlockManager;
 import com.fmsh.blockchain.core.service.BlockService;
@@ -139,7 +138,6 @@ public class BlockChecker {
     private boolean checkBlockHashSignNotPass(Block block) {
         BlockRequestBody blockRequestBody = new BlockRequestBody();
         blockRequestBody.setBlockBody(block.getBlockBody());
-        blockRequestBody.setPublicKey(block.getBlockHeader().getPublicKey());
         if(blockService.check(blockRequestBody) != null) return true;
 
         String hash = Sha256.sha256(block.getBlockHeader().toString() + block.getBlockBody().toString());

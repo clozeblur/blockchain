@@ -110,7 +110,7 @@ public class UTXOSet {
      * 当一个新的区块产生时，需要去做两件事情：
      * 1）从UTXO池中移除花费掉了的交易输出；
      * 2）保存新的未花费交易输出；
-     *
+     * </p>
      * @param tipBlock 最新的区块
      */
     @Synchronized
@@ -158,8 +158,5 @@ public class UTXOSet {
             String txId = Hex.encodeHexString(transaction.getTxId());
             RocksDBUtils.getInstance().putUTXOs(txId, txOutputs);
         }
-
     }
-
-
 }

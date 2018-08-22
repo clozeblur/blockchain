@@ -5,14 +5,11 @@ package com.fmsh.blockchain.biz.block;
  * @author wuweifeng wrote on 2018/3/2.
  */
 public class Instruction extends InstructionBase {
+    private static final long serialVersionUID = -5532500158388230543L;
     /**
      * 新的内容
      */
     private String json;
-    /**
-     * 时间戳
-     */
-    private Long timestamp;
     /**
      * 操作人的公钥
      */
@@ -43,14 +40,6 @@ public class Instruction extends InstructionBase {
         this.publicKey = publicKey;
     }
 
-    public Long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(Long timestamp) {
-        this.timestamp = timestamp;
-    }
-
     public String getSign() {
         return sign;
     }
@@ -71,7 +60,6 @@ public class Instruction extends InstructionBase {
     public String toString() {
         return "Instruction{" +
                 "json='" + json + '\'' +
-                ", timestamp=" + timestamp +
                 ", publicKey='" + publicKey + '\'' +
                 ", sign='" + sign + '\'' +
                 ", hash='" + hash + '\'' +

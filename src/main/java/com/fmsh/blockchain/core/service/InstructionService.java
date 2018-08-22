@@ -4,10 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.fmsh.blockchain.biz.block.Instruction;
 import com.fmsh.blockchain.biz.block.InstructionReverse;
 import com.fmsh.blockchain.biz.block.Operation;
-import com.fmsh.blockchain.biz.util.Sha256;
-import com.fmsh.blockchain.biz.util.TrustSDK;
 import com.fmsh.blockchain.common.CommonUtil;
-import com.fmsh.blockchain.common.exception.TrustSDKException;
 import com.fmsh.blockchain.core.body.InstructionBody;
 import org.springframework.stereotype.Service;
 
@@ -18,33 +15,6 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class InstructionService {
-    /**
-     * 校验公私钥是不是一对
-     *
-     * @param instructionBody
-     *         instructionBody
-     * @return boolean
-     * @throws TrustSDKException
-     *         TrustSDKException
-     */
-    public boolean checkKeyPair(InstructionBody instructionBody) throws TrustSDKException {
-        return TrustSDK.checkPairKey(instructionBody.getPrivateKey(), instructionBody.getPublicKey());
-    }
-
-    /**
-     * 校验内容的合法性
-     * @param instructionBody instructionBody
-     * @return true false
-     */
-    public boolean checkContent(InstructionBody instructionBody) {
-        byte operation = instructionBody.getOperation();
-        if (operation != Operation.ADD && operation != Operation.DELETE && operation != Operation.UPDATE) {
-            return false;
-        }
-        //不是add时，必须要有id和json和原始json
-        return Operation.UPDATE != operation && Operation.DELETE != operation || instructionBody.getInstructionId()
-                != null && instructionBody.getJson() != null && instructionBody.getOldJson() != null;
-    }
 
     /**
      * 根据传来的body构建一条指令
@@ -59,19 +29,7 @@ public class InstructionService {
         if (Operation.ADD == instruction.getOperation()) {
             instruction.setInstructionId(CommonUtil.generateUuid());
         }
-        instruction.setTimestamp(CommonUtil.getNow());
-//        String buildStr = getSignString(instruction);
-//        //设置签名，供其他人验证
-//        instruction.setSign(TrustSDK.signString(instructionBody.getPrivateKey(), buildStr));
-//        //设置hash，防止篡改
-//        instruction.setHash(Sha256.sha256(buildStr));
-
         return instruction;
-    }
-    
-    private String getSignString(Instruction instruction) {
-    	return instruction.getOperation() + instruction.getTable() + instruction
-    			.getInstructionId() + (instruction.getJson()==null?"":instruction.getJson());
     }
 
     /**
@@ -96,17 +54,5 @@ public class InstructionService {
         }
 
         return instructionReverse;
-    }
-
-    @SuppressWarnings("unused")
-    public boolean checkSign(Instruction instruction) throws TrustSDKException {
-        String buildStr = getSignString(instruction);
-        return TrustSDK.verifyString(instruction.getPublicKey(), buildStr, instruction.getSign());
-    }
-
-    @SuppressWarnings("unused")
-    public boolean checkHash(Instruction instruction) {
-        String buildStr = getSignString(instruction);
-        return Sha256.sha256(buildStr).equals(instruction.getHash());
     }
 }

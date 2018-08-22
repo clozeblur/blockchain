@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DisruptorServerHandler implements EventHandler<BaseEvent> {
 
     @Override
-    public void onEvent(BaseEvent baseEvent, long sequence, boolean endOfBatch) throws Exception {
+    public void onEvent(BaseEvent baseEvent, long sequence, boolean endOfBatch) {
     	try {
     		ApplicationContextProvider.getBean(DisruptorServerConsumer.class).receive(baseEvent);
 		} catch (Exception e) {

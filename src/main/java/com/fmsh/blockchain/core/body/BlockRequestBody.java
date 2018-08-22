@@ -16,7 +16,5 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class BlockRequestBody {
-
-    private String publicKey;
     private BlockBody blockBody;
 }

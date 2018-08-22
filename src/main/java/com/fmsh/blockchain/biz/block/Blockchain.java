@@ -1,7 +1,5 @@
 package com.fmsh.blockchain.biz.block;
 
-import cn.hutool.core.codec.Base64;
-import cn.hutool.core.util.StrUtil;
 import com.fmsh.blockchain.biz.store.RocksDBUtils;
 import com.fmsh.blockchain.biz.transaction.TXInput;
 import com.fmsh.blockchain.biz.transaction.TXOutput;
@@ -36,20 +34,6 @@ import java.util.*;
 public class Blockchain {
 
     private String lastBlockHash;
-
-    /**
-     * 从 DB 中恢复区块链数据
-     *
-     * @return blockchain
-     */
-    @SuppressWarnings("unused")
-    public static Blockchain initBlockchainFromDB() {
-        String lastBlockHash = RocksDBUtils.getInstance().getLastBlockHash();
-        if (lastBlockHash == null) {
-            throw new RuntimeException("ERROR: Fail to init blockchain from db. ");
-        }
-        return new Blockchain(lastBlockHash);
-    }
 
     /**
      * 区块链迭代器
@@ -194,13 +178,6 @@ public class Blockchain {
         for (BlockchainIterator blockchainIterator = this.getBlockchainIterator(); blockchainIterator.hashNext(); ) {
             Block block = blockchainIterator.next();
             boolean isRelated = false;
-            if (StrUtil.equals(block.getBlockHeader().getPublicKey(), Base64.encode(publicKey))) {
-                isRelated = true;
-            }
-            if (isRelated) {
-                blocks.add(block);
-                continue;
-            }
 
             List<Transaction> transactions = new ArrayList<>();
             for (Instruction instruction : block.getBlockBody().getInstructions()) {
@@ -208,10 +185,6 @@ public class Blockchain {
             }
 
             for (Transaction transaction : transactions) {
-                // 如果是 coinbase 交易，直接跳过，因为它不存在引用前一个区块的交易输出
-                if (transaction.isCoinbase()) {
-                    continue;
-                }
 
                 for (TXInput txInput : transaction.getInputs()) {
                     if (Arrays.equals(txInput.getPubKey(), publicKey)) {
